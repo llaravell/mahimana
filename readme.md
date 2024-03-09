@@ -14,10 +14,11 @@ Here're some of the project's best features:
 
 *   Update and Upgrade system
 *   Change SSH port
+*   Adding domain with <span style="color:red">bind9</span>
 
-<h2>🛠️ Installation Steps:</h2>
+<h2>🛠️ Usage</h2>
 
-<p>1. simple use</p>
+<p>simple use (With root access)</p>
 
 ```
 bash <(curl -fsSL https://raw.githubusercontent.com/llaravell/mahimana/master/mahimana.sh)

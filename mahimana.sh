@@ -115,11 +115,17 @@ updateAndUpgrade() {
 FindSSHPort() {
     # Check if ssh is installed
     if command -v ssh &> /dev/null; then
+        # Check if sshd_config file not exists
+        if [ ! -f /etc/ssh/sshd_config ]; then
+            echo "SSH is not installed";
+            exit 1;
+        fi
         # Find port in sshd_config
         port=$(sudo grep "^Port" /etc/ssh/sshd_config | awk '{print $2}')
-        echo "$port"
+        echo "Current port is $port"
     else
         echo "SSH is not installed"
+        exit 1;
     fi
 }
 
@@ -161,6 +167,117 @@ changeSSHPort() {
     }
 }
 
+# Bind a domain to server by bind9
+BindDomain() {
+        # If Bind9 not installed then install
+        if ! command -v bind &> /dev/null; then
+            printf "${Blue} 🚀 Installing bind9 ... ${NC} \n";
+            sudo apt-get install -y bind9 > /dev/null 2>&1;
+            printf "${Green} 🎉 Install bind9 is complete ${NC} \n";
+        fi
+        # Starting bind 9
+        printf "${Blue} 🚀 Starting Bind9 ... ${NC} \n";
+        sudo systemctl start bind9 > /dev/null 2>&1;
+        printf "${Green} 🎉 Bind9 is running ${NC} \n";
+        # Enabling bind 9
+        printf "${Blue} 🚀 Enabling Bind9 ... ${NC} \n";
+        sudo systemctl enable bind9 > /dev/null 2>&1;
+        printf "${Green} 🎉 Bind9 is enabled ${NC} \n";
+        # get domain 
+        read -p "Enter the domain: " domain
+        domainWithoutExtension="${domain%.*}"
+        # Set the domain in /etc/bind/named.conf.local
+        printf "${Blue} 🚀 Setting the domain... ${NC} \n";
+        namedConfLocal="include "/etc/bind/zone/${domain}/${domainWithoutExtension}.conf";";
+        echo "$namedConfLocal" > /etc/bind/named.conf.local;
+        namedConfLocalSave="include "/etc/bind/zone/${domain}/${domainWithoutExtension}.conf";";
+        echo "$namedConfLocalSave" > /etc/bind/named.conf.local.save;
+        # make directory zone and make directory with name of domain
+        # Check if directory exists
+        if [ -d /etc/bind/zone ]; then
+            sudo rm -r /etc/bind/zone
+        fi
+        mkdir -p /etc/bind/zone
+        mkdir -p /etc/bind/zone/${domain}
+        #create file with name domain without extension
+        touch /etc/bind/zone/${domain}/${domainWithoutExtension}.conf;
+        # Get Ip
+        ip=$(ip -4 addr | sed -ne 's|^.* inet \([^/]*\)/.* scope global.*$|\1|p' | head -1);
+        reverseIp=$(echo "$ip" | awk -F '.' '{print $4 "." $3 "." $2 "." $1}');
+        reverseIpWithoutLastDot=$(echo $reverseIp | sed 's/\.[^.]*$//')
+        reverseIpLastDot=$(echo $reverseIp | awk -F'.' '{print $4}')
+        domainWithoutExtensionConf="
+zone "${domain}" {
+    type master;
+    file "/etc/bind/zone/${domain}/db.${domainWithoutExtension}";
+};
+zone "${reverseIpWithoutLastDot}.in-addr.arpa" {
+    type master;
+    file "/etc/bind/zone/${domain}/db.${reverseIpLastDot}";
+};
+"
+        echo "$domainWithoutExtensionConf" > /etc/bind/zone/${domain}/${domainWithoutExtension}.conf;
+        # Create db.${reverseIpLastDot}
+        touch /etc/bind/zone/${domain}/db.${reverseIpLastDot};
+        reverseIpLastDotDb=";
+; BIND reverse data file for local loopback interface
+;
+\$TTL	604800
+@	IN	SOA	${domain}. root.${domain}. (
+                1		; Serial
+            604800		; Refresh
+            86400		; Retry
+            2419200		; Expire
+            604800 )	; Negative Cache TTL
+;
+@	IN	NS	${domain}.
+200	IN	PTR	${domain}. 
+";
+        echo "$reverseIpLastDotDb" > /etc/bind/zone/${domain}/db.${reverseIpLastDot};
+        # Create db.${domainWithoutExtension}
+        touch /etc/bind/zone/${domain}/db.${domainWithoutExtension};
+        dbDotDomainWithoutExtension=";
+; BIND data file for local loopback interface
+;
+\$TTL	604800
+@	IN	SOA	${domain}. root.${domain}. (
+                2		; Serial
+            604800		; Refresh
+            86400		; Retry
+            2419200		; Expire
+            604800 )	; Negative Cache TTL
+;
+@	IN	NS	${domain}.
+@	IN	A	${ip}
+@	IN	PTR	${domain}.
+";
+        echo "$dbDotDomainWithoutExtension" > /etc/bind/zone/${domain}/db.${domainWithoutExtension};
+        # Restart bind9
+        printf "${Blue} 🚀 Restarting Bind9 ... ${NC} \n";
+        sudo systemctl restart bind9 > /dev/null 2>&1;
+        sudo rndc reload > /dev/null 2>&1;
+        printf "${Green} 🎉 Bind9 is restarted ${NC} \n";
+        # check domain is bind or not
+        printf "${Blue} 🚀 Checking domain is bind or not ... ${NC} \n";
+        # Check if dig is installed
+        sudo dpkg -s dnsutils > /dev/null 2>&1 || {
+            printf "${Blue} 🚀 Installing dig ... ${NC} \n";
+            sudo apt-get install -y dnsutils > /dev/null 2>&1;
+            printf "${Green} 🎉 dig is installed ${NC} \n";
+        }
+        #Get First ip of domain with dig
+        digIp=$(dig +short $domain | head -1)
+        if [ "$ip" = "$digIp" ]; then
+            printf "${Green} 🎉 Domain is binded successfully ${NC} \n";
+        else
+            printf "${Red} ❌ Domain is not binded ${NC} \n";
+            exit 1;
+        fi
+        # wait 5 secound
+        sleep 5;
+        main;
+}
+
 # Main
 main() {
     clear
@@ -170,7 +287,8 @@ main() {
     printf "${Yellow}-------------------------------------------${NC}\n"
     printf "${Green}Choose an option:${NC}\n"
     printf "${Cyan}1. Update and upgrade the system${NC}\n"
-    printf "${Cyan}2. Change SSH port ${Purple}Current port is $(FindSSHPort) ${NC}\n"
+    printf "${Cyan}2. Change SSH port ${Purple}($(FindSSHPort)) ${Red}[Server]${NC}\n"
+    printf "${Cyan}3. Bind a domain ${Red}[Server]${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -180,6 +298,9 @@ main() {
             ;;
         2)
             changeSSHPort
+            ;;
+        3)
+            BindDomain
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
