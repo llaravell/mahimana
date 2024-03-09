@@ -100,7 +100,7 @@ EOF
 updateAndUpgrade() {
     printf "${Blue} 🚀 Starting Update and upgrade the system ... ${NC} \n";
     {
-        sudo apt-get update > /dev/null 2>&1 && sudo apt-get upgrade -y > /dev/null 2>&1;
+        sudo apt-get update > /dev/null 2>&1 && sudo apt-get upgrade -y > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 Update and Upgrade the system is complete ${NC} \n";
         # wait 5 secound
         sleep 5;
@@ -135,7 +135,7 @@ changeSSHPort() {
         # Check ssh and sshd is installed
         sudo dpkg -s ssh > /dev/null 2>&1 || {
             printf "${Blue} 🚀 Starting Install SSH ... ${NC} \n";
-            sudo apt-get install -y ssh > /dev/null 2>&1;
+            sudo apt-get install -y ssh > /dev/null 2>&1 & spinner;
             printf "${Green} 🎉 Install SSH is complete ${NC} \n";
             }
         read -p "Enter the new SSH port: " new_port
@@ -145,16 +145,16 @@ changeSSHPort() {
         # Replace old port with new port in sshd_config
         sudo find /etc/ssh/sshd_config -type f -exec sed -i "s/^Port .*/Port $new_port/g" {} \;
         printf "${Green} 🎉 Change SSH port is complete ${NC} \n";
-        sudo service ssh restart > /dev/null 2>&1;
+        sudo service ssh restart > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 SSH service is restarted ${NC} \n";
         printf "${Green} 🎉 SSH port is changed to $new_port ${NC} \n";
         # check if ufw is installed
         if command -v ufw &> /dev/null; then
             printf "${Blue} 🚀 Starting Close Firewall for old port... ${NC} \n";
-            sudo ufw deny $old_port > /dev/null 2>&1;
+            sudo ufw deny $old_port > /dev/null 2>&1 & spinner;
             printf "${Green} 🎉 Firewall is closed sucessfully ${NC} \n";
             printf "${Blue} 🚀 Starting Open Firewall ... ${NC} \n";
-            sudo ufw allow $new_port > /dev/null 2>&1;
+            sudo ufw allow $new_port > /dev/null 2>&1 & spinner;
             printf "${Green} 🎉 Firewall is opened sucessfully ${NC} \n";
         fi
         # wait 5 secound
@@ -172,16 +172,16 @@ BindDomain() {
         # If Bind9 not installed then install
         if ! command -v bind &> /dev/null; then
             printf "${Blue} 🚀 Installing bind9 ... ${NC} \n";
-            sudo apt-get install -y bind9 > /dev/null 2>&1;
+            sudo apt-get install -y bind9 > /dev/null 2>&1 & spinner;
             printf "${Green} 🎉 Install bind9 is complete ${NC} \n";
         fi
         # Starting bind 9
         printf "${Blue} 🚀 Starting Bind9 ... ${NC} \n";
-        sudo systemctl start bind9 > /dev/null 2>&1;
+        sudo systemctl start bind9 > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 Bind9 is running ${NC} \n";
         # Enabling bind 9
         printf "${Blue} 🚀 Enabling Bind9 ... ${NC} \n";
-        sudo systemctl enable bind9 > /dev/null 2>&1;
+        sudo systemctl enable bind9 > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 Bind9 is enabled ${NC} \n";
         # get domain 
         read -p "Enter the domain: " domain
@@ -195,10 +195,10 @@ BindDomain() {
         # make directory zone and make directory with name of domain
         # Check if directory exists
         if [ -d /etc/bind/zone ]; then
-            sudo rm -r /etc/bind/zone
+            sudo rm -r /etc/bind/zone > /dev/null 2>&1 & spinner;
         fi
-        mkdir -p /etc/bind/zone
-        mkdir -p /etc/bind/zone/${domain}
+        mkdir -p /etc/bind/zone > /dev/null 2>&1 & spinner;
+        mkdir -p /etc/bind/zone/${domain} > /dev/null 2>&1 & spinner;
         #create file with name domain without extension
         touch /etc/bind/zone/${domain}/${domainWithoutExtension}.conf;
         # Get Ip
@@ -286,7 +286,7 @@ RemoveDomain() {
     # Check if dig is installed
     sudo dpkg -s dnsutils > /dev/null 2>&1 || {
         printf "${Blue} 🚀 Installing dig ... ${NC} \n";
-        sudo apt-get install -y dnsutils > /dev/null 2>&1;
+        sudo apt-get install -y dnsutils > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 dig is installed ${NC} \n";
     }
     # Get Ip
@@ -305,8 +305,8 @@ RemoveDomain() {
         sudo rm -r /etc/bind/zone/${domain}
         # Restart bind9
         printf "${Blue} 🚀 Restarting Bind9 ... ${NC} \n";
-        sudo systemctl restart bind9 > /dev/null 2>&1;
-        sudo rndc reload > /dev/null 2>&1;
+        sudo systemctl restart bind9 > /dev/null 2>&1 & spinner;
+        sudo rndc reload > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 Bind9 is restarted ${NC} \n";
         # check domain is bind or not
         printf "${Blue} 🚀 Checking domain is bind or not ... ${NC} \n";
@@ -324,6 +324,58 @@ RemoveDomain() {
     fi
 }
 
+spinner() {
+    local pid=$!
+    local delay=0.75
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+#Get SSL
+getSSL() {
+    read -p "Enter the domain name: " domain
+    # Check if certbot is installed
+    if ! command -v certbot &> /dev/null; then
+        printf "${Blue} 🚀 Installing certbot ... ${NC} \n";
+        # Check snap is installed
+        sudo dpkg -s snapd > /dev/null 2>&1 || {
+            printf "${Blue} 🚀 Installing snap ... ${NC} \n";
+            sudo apt-get install -y snapd > /dev/null 2>&1;
+            printf "${Green} 🎉 snap is installed ${NC} \n";
+        }
+        sudo snap install --classic certbot > /dev/null 2>&1;
+        sudo ln -s /snap/bin/certbot /usr/bin/certbot > /dev/null 2>&1;
+        printf "${Green} 🎉 certbot is installed ${NC} \n";
+    fi
+    # Check if ufw is installed then port 80 and 443 is open
+    if command -v ufw &> /dev/null; then
+        sudo ufw allow 80 > /dev/null 2>&1;
+        sudo ufw allow 443 > /dev/null 2>&1;
+    fi
+    printf "${Blue} 🚀 Starting get SSL ... ${NC} \n";
+    # Get SSL Certificate
+    sudo certbot certonly --standalone --non-interactive --agree-tos --register-unsafely-without-email -d $domain > /dev/null 2>&1 & spinner;
+    # Check if certificates are created
+    if [ -f /etc/letsencrypt/live/$domain/fullchain.pem ]; then
+        printf "${Green} 🎉 Certificates are created successfully ${NC} \n";
+        printf "${Green} 💁 Your certificate information is: ${NC} \n";
+        sudo certbot certificates -d $domain
+        # wait 5 secound
+        sleep 5;
+        main;
+    else
+        printf "${Red} ❌ Certificates are not created ${NC} \n";
+        exit 1;
+    fi
+}
+
 # Main
 main() {
     clear
@@ -336,6 +388,7 @@ main() {
     printf "${Cyan}2. Change SSH port ${Purple}($(FindSSHPort)) ${Red}[Server]${NC}\n"
     printf "${Cyan}3. Bind a domain ${Blue}(bind9) ${Red}[Server]${NC}\n"
     printf "${Cyan}4. Remove a domain ${Blue}(bind9) ${Red}[Server]${NC}\n"
+    printf "${Cyan}5. Get single SSL certificate for a domain ${Red}[Server]${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -351,6 +404,9 @@ main() {
             ;;
         4)
             RemoveDomain
+            ;;
+        5)
+            getSSL
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"

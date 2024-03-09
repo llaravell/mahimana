@@ -7,7 +7,8 @@
 <p align="center"><img src="https://img.shields.io/github/license/llaravell/mahimana" alt="shields"> <img src="https://img.shields.io/github/repo-size/llaravell/mahimana" alt="shields"> <img src="https://img.shields.io/github/v/release/llaravell/mahimana
 " alt="shields" /></p>
 
-  
+<h2>Screen Shot</h2>
+<img src="https://s8.uupload.ir/files/screenshot_from_2024-03-09_16-36-39_wnez.png" alt="screenshot" />
   
 <h2>🧐 Features</h2>
 
@@ -17,6 +18,7 @@ Here're some of the project's best features:
 *   Change SSH port
 *   Adding domain with <span style="color:red">bind9</span>
 *   Removing domain with <span style="color:red">bind9</span>
+*   Get single SSL for a domain with <span style="color:red">Certbot</span>
 
 <h2>🛠️ Usage</h2>
 
