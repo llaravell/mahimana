@@ -360,6 +360,20 @@ getSSL() {
         sudo ufw allow 443 > /dev/null 2>&1;
     fi
     printf "${Blue} 🚀 Starting get SSL ... ${NC} \n";
+    # Check port 80 is not used and open
+    # Check if lsof is not installed then install
+    sudo dpkg -s lsof > /dev/null 2>&1 || {
+        printf "${Blue} 🚀 Installing lsof ... ${NC} \n";
+        sudo apt-get install -y lsof > /dev/null 2>&1;
+        printf "${Green} 🎉 lsof is installed ${NC} \n";
+    }
+    # if port 80 is used then exit
+    if sudo lsof -i :80 > /dev/null 2>&1; then
+        # Get the name of process using port 80
+        process=$(sudo lsof -i :80 | awk '{print $1}' | tail -n 1)
+        printf "${Red} ❌ Port 80 is already in use by $process ${NC} \n";
+        exit 1;
+    fi
     # Get SSL Certificate
     sudo certbot certonly --standalone --non-interactive --agree-tos --register-unsafely-without-email -d $domain > /dev/null 2>&1 & spinner;
     # Check if certificates are created
