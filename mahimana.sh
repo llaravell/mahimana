@@ -278,6 +278,52 @@ zone "${reverseIpWithoutLastDot}.in-addr.arpa" {
         main;
 }
 
+#Remove a domain
+RemoveDomain() {
+    read -p "Enter the domain name: " domain
+    # Check if domain is binded
+    printf "${Blue} 🚀 Checking domain is binded or not ... ${NC} \n";
+    # Check if dig is installed
+    sudo dpkg -s dnsutils > /dev/null 2>&1 || {
+        printf "${Blue} 🚀 Installing dig ... ${NC} \n";
+        sudo apt-get install -y dnsutils > /dev/null 2>&1;
+        printf "${Green} 🎉 dig is installed ${NC} \n";
+    }
+    # Get Ip
+    ip=$(ip -4 addr | sed -ne 's|^.* inet \([^/]*\)/.* scope global.*$|\1|p' | head -1);
+    #Get First ip of domain with dig
+    digIp=$(dig +short $domain | head -1)
+    if [ "$ip" = "$digIp" ]; then
+        printf "${Green} 🎉 Domain is not binded ${NC} \n";
+    else
+        domainWithoutExtension=$(echo $domain | cut -d '.' -f1);
+        # empty file /etc/bind/named.conf.local
+        echo > /etc/bind/named.conf.local
+        # empty file /etc/bind/named.conf.local.save
+        echo > /etc/bind/named.conf.local.save
+        # empty file /etc/bind/zone/${domain}/db.${domainWithoutExtension}
+        sudo rm -r /etc/bind/zone/${domain}
+        # Restart bind9
+        printf "${Blue} 🚀 Restarting Bind9 ... ${NC} \n";
+        sudo systemctl restart bind9 > /dev/null 2>&1;
+        sudo rndc reload > /dev/null 2>&1;
+        printf "${Green} 🎉 Bind9 is restarted ${NC} \n";
+        # check domain is bind or not
+        printf "${Blue} 🚀 Checking domain is bind or not ... ${NC} \n";
+        #Get First ip of domain with dig
+        digIp=$(dig +short $domain | head -1)
+        if [ "$ip" = "$digIp" ]; then
+            printf "${Green} 🎉 Domain is removed successfully ${NC} \n";
+        else
+            printf "${Red} ❌ Domain is not removed ${NC} \n";
+            exit 1;
+        fi
+        # wait 5 secound
+        sleep 5;
+        main;
+    fi
+}
+
 # Main
 main() {
     clear
@@ -288,7 +334,8 @@ main() {
     printf "${Yellow}Choose an option:${NC}\n"
     printf "${Cyan}1. Update and upgrade the system${NC}\n"
     printf "${Cyan}2. Change SSH port ${Purple}($(FindSSHPort)) ${Red}[Server]${NC}\n"
-    printf "${Cyan}3. Bind a domain ${Red}[Server]${NC}\n"
+    printf "${Cyan}3. Bind a domain ${Blue}(bind9) ${Red}[Server]${NC}\n"
+    printf "${Cyan}4. Remove a domain ${Blue}(bind9) ${Red}[Server]${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -301,6 +348,9 @@ main() {
             ;;
         3)
             BindDomain
+            ;;
+        4)
+            RemoveDomain
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"

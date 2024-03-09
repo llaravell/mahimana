@@ -16,6 +16,7 @@ Here're some of the project's best features:
 *   Update and Upgrade system
 *   Change SSH port
 *   Adding domain with <span style="color:red">bind9</span>
+*   Removing domain with <span style="color:red">bind9</span>
 
 <h2>🛠️ Usage</h2>
 
