@@ -82,7 +82,7 @@ fi
 
 # Define a function to display my logo
 displayLogo() {
-    printf "${Green}"
+    printf "${BIGreen}"
     cat << "EOF"
   __  __       _     _ __  __                   
  |  \/  |     | |   (_)  \/  |                  
@@ -285,7 +285,7 @@ main() {
 
     printf "${Yellow}Welcome to MahiMana script - a server tool!${NC}\n"
     printf "${Yellow}-------------------------------------------${NC}\n"
-    printf "${Green}Choose an option:${NC}\n"
+    printf "${Yellow}Choose an option:${NC}\n"
     printf "${Cyan}1. Update and upgrade the system${NC}\n"
     printf "${Cyan}2. Change SSH port ${Purple}($(FindSSHPort)) ${Red}[Server]${NC}\n"
     printf "${Cyan}3. Bind a domain ${Red}[Server]${NC}\n"
