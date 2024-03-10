@@ -19,6 +19,7 @@ Here're some of the project's best features:
 *   Adding domain with <span style="color:red">bind9</span>
 *   Removing domain with <span style="color:red">bind9</span>
 *   Get single SSL for a domain with <span style="color:red">Certbot</span>
+*   Install Docker
 
 <h2>🛠️ Usage</h2>
 

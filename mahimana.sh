@@ -390,6 +390,25 @@ getSSL() {
     fi
 }
 
+# Install Docker
+installDocker() {
+    # Check if docker is installed or not
+    if command -v docker &> /dev/null; then
+        printf "${Green} ✅ Docker is already installed ${NC} \n";
+        printf "${Green} 💁 Your Docker information is: ${NC} \n";
+        sudo docker info;
+    else
+    printf "${Blue} 🚀 Starting Install Docker ... ${NC} \n";
+    sudo bash -c "$(curl -sSL https://get.docker.com)" > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 Install Docker is complete ${NC} \n";
+    printf "${Green} 💁 Your Docker information is: ${NC} \n";
+    sudo docker info;
+    fi
+    # wait 5 secound
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -403,6 +422,7 @@ main() {
     printf "${Cyan}3. Bind a domain ${Blue}(bind9) ${Red}[Server]${NC}\n"
     printf "${Cyan}4. Remove a domain ${Blue}(bind9) ${Red}[Server]${NC}\n"
     printf "${Cyan}5. Get single SSL certificate for a domain ${Red}[Server]${NC}\n"
+    printf "${Cyan}6. Install Docker${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -421,6 +441,9 @@ main() {
             ;;
         5)
             getSSL
+            ;;
+        6)
+            installDocker
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
