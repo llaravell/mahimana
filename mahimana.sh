@@ -118,12 +118,15 @@ FindSSHPort() {
         # Check if sshd_config file not exists
         if [ ! -f /etc/ssh/sshd_config ]; then
             echo "SSH is not installed";
+            exit 1;
         fi
         # Find port in sshd_config
         port=$(grep "#\?Port" /etc/ssh/sshd_config | head -1 | awk '{print $2}')
-        echo "Current port is $port"
+        echo "Current port is $port";
+        exit 0;
     else
-        echo "SSH is not installed"
+        echo "SSH is not installed";
+        exit 1;
     fi
 }
 
