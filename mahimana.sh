@@ -121,7 +121,7 @@ FindSSHPort() {
             exit 1;
         fi
         # Find port in sshd_config
-        port=$(sudo grep "^Port" /etc/ssh/sshd_config | awk '{print $2}')
+        port=$(sudo grep "#\?Port" /etc/ssh/sshd_config | head -1 | awk '{print $2}')
         echo "Current port is $port"
     else
         echo "SSH is not installed"
@@ -141,9 +141,9 @@ changeSSHPort() {
         read -p "Enter the new SSH port: " new_port
         printf "${Blue} 🚀 Starting Change SSH port ... ${NC} \n";
         # Find old port in sshd_config
-        old_port=$(sudo grep "^Port" /etc/ssh/sshd_config | awk '{print $2}')
+        old_port=$(sudo grep "#\?Port" /etc/ssh/sshd_config | head -1 | awk '{print $2}')
         # Replace old port with new port in sshd_config
-        sudo find /etc/ssh/sshd_config -type f -exec sed -i "s/^Port .*/Port $new_port/g" {} \;
+        sudo sed -i -E "s/^#?Port\s+[0-9]+$/Port ${new_port}/" /etc/ssh/sshd_config
         printf "${Green} 🎉 Change SSH port is complete ${NC} \n";
         sudo service ssh restart > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 SSH service is restarted ${NC} \n";
