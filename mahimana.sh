@@ -100,7 +100,7 @@ EOF
 updateAndUpgrade() {
     printf "${Blue} 🚀 Starting Update and upgrade the system ... ${NC} \n";
     {
-        sudo apt-get update > /dev/null 2>&1 && sudo apt-get upgrade -y > /dev/null 2>&1 & spinner;
+        apt-get update > /dev/null 2>&1 && apt-get upgrade -y > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 Update and Upgrade the system is complete ${NC} \n";
         # wait 5 secound
         sleep 5;
@@ -118,14 +118,12 @@ FindSSHPort() {
         # Check if sshd_config file not exists
         if [ ! -f /etc/ssh/sshd_config ]; then
             echo "SSH is not installed";
-            exit 1;
         fi
         # Find port in sshd_config
-        port=$(sudo grep "#\?Port" /etc/ssh/sshd_config | head -1 | awk '{print $2}')
+        port=$(grep "#\?Port" /etc/ssh/sshd_config | head -1 | awk '{print $2}')
         echo "Current port is $port"
     else
         echo "SSH is not installed"
-        exit 1;
     fi
 }
 
@@ -133,28 +131,28 @@ FindSSHPort() {
 changeSSHPort() {
     {
         # Check ssh and sshd is installed
-        sudo dpkg -s ssh > /dev/null 2>&1 || {
+        dpkg -s ssh > /dev/null 2>&1 || {
             printf "${Blue} 🚀 Starting Install SSH ... ${NC} \n";
-            sudo apt-get install -y ssh > /dev/null 2>&1 & spinner;
+            apt-get install -y ssh > /dev/null 2>&1 & spinner;
             printf "${Green} 🎉 Install SSH is complete ${NC} \n";
             }
         read -p "Enter the new SSH port: " new_port
         printf "${Blue} 🚀 Starting Change SSH port ... ${NC} \n";
         # Find old port in sshd_config
-        old_port=$(sudo grep "#\?Port" /etc/ssh/sshd_config | head -1 | awk '{print $2}')
+        old_port=$(grep "#\?Port" /etc/ssh/sshd_config | head -1 | awk '{print $2}')
         # Replace old port with new port in sshd_config
-        sudo sed -i -E "s/^#?Port\s+[0-9]+$/Port ${new_port}/" /etc/ssh/sshd_config
+        sed -i -E "s/^#?Port\s+[0-9]+$/Port ${new_port}/" /etc/ssh/sshd_config
         printf "${Green} 🎉 Change SSH port is complete ${NC} \n";
-        sudo service ssh restart > /dev/null 2>&1 & spinner;
+        service ssh restart > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 SSH service is restarted ${NC} \n";
         printf "${Green} 🎉 SSH port is changed to $new_port ${NC} \n";
         # check if ufw is installed
         if command -v ufw &> /dev/null; then
             printf "${Blue} 🚀 Starting Close Firewall for old port... ${NC} \n";
-            sudo ufw deny $old_port > /dev/null 2>&1 & spinner;
+            ufw deny $old_port > /dev/null 2>&1 & spinner;
             printf "${Green} 🎉 Firewall is closed sucessfully ${NC} \n";
             printf "${Blue} 🚀 Starting Open Firewall ... ${NC} \n";
-            sudo ufw allow $new_port > /dev/null 2>&1 & spinner;
+            ufw allow $new_port > /dev/null 2>&1 & spinner;
             printf "${Green} 🎉 Firewall is opened sucessfully ${NC} \n";
         fi
         # wait 5 secound
@@ -172,16 +170,16 @@ BindDomain() {
         # If Bind9 not installed then install
         if ! command -v bind &> /dev/null; then
             printf "${Blue} 🚀 Installing bind9 ... ${NC} \n";
-            sudo apt-get install -y bind9 > /dev/null 2>&1 & spinner;
+            apt-get install -y bind9 > /dev/null 2>&1 & spinner;
             printf "${Green} 🎉 Install bind9 is complete ${NC} \n";
         fi
         # Starting bind 9
         printf "${Blue} 🚀 Starting Bind9 ... ${NC} \n";
-        sudo systemctl start bind9 > /dev/null 2>&1 & spinner;
+        systemctl start bind9 > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 Bind9 is running ${NC} \n";
         # Enabling bind 9
         printf "${Blue} 🚀 Enabling Bind9 ... ${NC} \n";
-        sudo systemctl enable bind9 > /dev/null 2>&1 & spinner;
+        systemctl enable bind9 > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 Bind9 is enabled ${NC} \n";
         # get domain 
         read -p "Enter the domain: " domain
@@ -195,7 +193,7 @@ BindDomain() {
         # make directory zone and make directory with name of domain
         # Check if directory exists
         if [ -d /etc/bind/zone ]; then
-            sudo rm -r /etc/bind/zone > /dev/null 2>&1 & spinner;
+            rm -r /etc/bind/zone > /dev/null 2>&1 & spinner;
         fi
         mkdir -p /etc/bind/zone > /dev/null 2>&1 & spinner;
         mkdir -p /etc/bind/zone/${domain} > /dev/null 2>&1 & spinner;
@@ -254,15 +252,15 @@ zone "${reverseIpWithoutLastDot}.in-addr.arpa" {
         echo "$dbDotDomainWithoutExtension" > /etc/bind/zone/${domain}/db.${domainWithoutExtension};
         # Restart bind9
         printf "${Blue} 🚀 Restarting Bind9 ... ${NC} \n";
-        sudo systemctl restart bind9 > /dev/null 2>&1;
-        sudo rndc reload > /dev/null 2>&1;
+        systemctl restart bind9 > /dev/null 2>&1;
+        rndc reload > /dev/null 2>&1;
         printf "${Green} 🎉 Bind9 is restarted ${NC} \n";
         # check domain is bind or not
         printf "${Blue} 🚀 Checking domain is bind or not ... ${NC} \n";
         # Check if dig is installed
-        sudo dpkg -s dnsutils > /dev/null 2>&1 || {
+        dpkg -s dnsutils > /dev/null 2>&1 || {
             printf "${Blue} 🚀 Installing dig ... ${NC} \n";
-            sudo apt-get install -y dnsutils > /dev/null 2>&1;
+            apt-get install -y dnsutils > /dev/null 2>&1;
             printf "${Green} 🎉 dig is installed ${NC} \n";
         }
         #Get First ip of domain with dig
@@ -284,9 +282,9 @@ RemoveDomain() {
     # Check if domain is binded
     printf "${Blue} 🚀 Checking domain is binded or not ... ${NC} \n";
     # Check if dig is installed
-    sudo dpkg -s dnsutils > /dev/null 2>&1 || {
+    dpkg -s dnsutils > /dev/null 2>&1 || {
         printf "${Blue} 🚀 Installing dig ... ${NC} \n";
-        sudo apt-get install -y dnsutils > /dev/null 2>&1 & spinner;
+        apt-get install -y dnsutils > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 dig is installed ${NC} \n";
     }
     # Get Ip
@@ -302,11 +300,11 @@ RemoveDomain() {
         # empty file /etc/bind/named.conf.local.save
         echo > /etc/bind/named.conf.local.save
         # empty file /etc/bind/zone/${domain}/db.${domainWithoutExtension}
-        sudo rm -r /etc/bind/zone/${domain}
+        rm -r /etc/bind/zone/${domain}
         # Restart bind9
         printf "${Blue} 🚀 Restarting Bind9 ... ${NC} \n";
-        sudo systemctl restart bind9 > /dev/null 2>&1 & spinner;
-        sudo rndc reload > /dev/null 2>&1 & spinner;
+        systemctl restart bind9 > /dev/null 2>&1 & spinner;
+        rndc reload > /dev/null 2>&1 & spinner;
         printf "${Green} 🎉 Bind9 is restarted ${NC} \n";
         # check domain is bind or not
         printf "${Blue} 🚀 Checking domain is bind or not ... ${NC} \n";
@@ -345,42 +343,42 @@ getSSL() {
     if ! command -v certbot &> /dev/null; then
         printf "${Blue} 🚀 Installing certbot ... ${NC} \n";
         # Check snap is installed
-        sudo dpkg -s snapd > /dev/null 2>&1 || {
+        dpkg -s snapd > /dev/null 2>&1 || {
             printf "${Blue} 🚀 Installing snap ... ${NC} \n";
-            sudo apt-get install -y snapd > /dev/null 2>&1;
+            apt-get install -y snapd > /dev/null 2>&1;
             printf "${Green} 🎉 snap is installed ${NC} \n";
         }
-        sudo snap install --classic certbot > /dev/null 2>&1;
-        sudo ln -s /snap/bin/certbot /usr/bin/certbot > /dev/null 2>&1;
+        snap install --classic certbot > /dev/null 2>&1;
+        ln -s /snap/bin/certbot /usr/bin/certbot > /dev/null 2>&1;
         printf "${Green} 🎉 certbot is installed ${NC} \n";
     fi
     # Check if ufw is installed then port 80 and 443 is open
     if command -v ufw &> /dev/null; then
-        sudo ufw allow 80 > /dev/null 2>&1;
-        sudo ufw allow 443 > /dev/null 2>&1;
+        ufw allow 80 > /dev/null 2>&1;
+        ufw allow 443 > /dev/null 2>&1;
     fi
     printf "${Blue} 🚀 Starting get SSL ... ${NC} \n";
     # Check port 80 is not used and open
     # Check if lsof is not installed then install
-    sudo dpkg -s lsof > /dev/null 2>&1 || {
+    dpkg -s lsof > /dev/null 2>&1 || {
         printf "${Blue} 🚀 Installing lsof ... ${NC} \n";
-        sudo apt-get install -y lsof > /dev/null 2>&1;
+        apt-get install -y lsof > /dev/null 2>&1;
         printf "${Green} 🎉 lsof is installed ${NC} \n";
     }
     # if port 80 is used then exit
-    if sudo lsof -i :80 > /dev/null 2>&1; then
+    if lsof -i :80 > /dev/null 2>&1; then
         # Get the name of process using port 80
-        process=$(sudo lsof -i :80 | awk '{print $1}' | tail -n 1)
+        process=$(lsof -i :80 | awk '{print $1}' | tail -n 1)
         printf "${Red} ❌ Port 80 is already in use by $process ${NC} \n";
         exit 1;
     fi
     # Get SSL Certificate
-    sudo certbot certonly --standalone --non-interactive --agree-tos --register-unsafely-without-email -d $domain > /dev/null 2>&1 & spinner;
+    certbot certonly --standalone --non-interactive --agree-tos --register-unsafely-without-email -d $domain > /dev/null 2>&1 & spinner;
     # Check if certificates are created
     if [ -f /etc/letsencrypt/live/$domain/fullchain.pem ]; then
         printf "${Green} 🎉 Certificates are created successfully ${NC} \n";
         printf "${Green} 💁 Your certificate information is: ${NC} \n";
-        sudo certbot certificates -d $domain
+        certbot certificates -d $domain
         # wait 5 secound
         sleep 5;
         main;
@@ -396,13 +394,13 @@ installDocker() {
     if command -v docker &> /dev/null; then
         printf "${Green} ✅ Docker is already installed ${NC} \n";
         printf "${Green} 💁 Your Docker information is: ${NC} \n";
-        sudo docker info;
+        docker info;
     else
     printf "${Blue} 🚀 Starting Install Docker ... ${NC} \n";
-    sudo bash -c "$(curl -sSL https://get.docker.com)" > /dev/null 2>&1 & spinner;
+    bash -c "$(curl -sSL https://get.docker.com)" > /dev/null 2>&1 & spinner;
     printf "${Green} 🎉 Install Docker is complete ${NC} \n";
     printf "${Green} 💁 Your Docker information is: ${NC} \n";
-    sudo docker info;
+    docker info;
     fi
     # wait 5 secound
     sleep 5;
@@ -411,10 +409,7 @@ installDocker() {
 
 # Show current hostname
 showHostname() {
-    echo hostnamectl --static
-    # wait 5 secound
-    sleep 5;
-    main;
+    hostnamectl --static;
 }
 
 # Change Hostname
@@ -423,7 +418,7 @@ changeHostname() {
     hostnamectl set-hostname $hostname
     printf "${Green} 🎉 Hostname is changed ${NC} \n";
     printf "${Green} 💁 Your Hostname information is: ${NC} \n";
-    hostnamectl --pretty
+    hostnamectl
     # wait 5 secound
     sleep 5;
     main;
