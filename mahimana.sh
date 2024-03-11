@@ -479,10 +479,7 @@ getSSLWithNginx() {
     # Get domain
     read -p "Enter the domain: " domain
     # Get SSL
-    certbot --nginx -d $domain > /dev/null 2>&1 & spinner;
-    printf "${Green} 🎉 SSL is created successfully ${NC} \n";
-    printf "${Green} 💁 Your SSL information is: ${NC} \n";
-    certbot certificates -d $domain
+    certbot --nginx --non-interactive --agree-tos --register-unsafely-without-email -d $domain > /dev/null 2>&1 & spinner;
     # Check if certificates are created
     if [ -f /etc/letsencrypt/live/$domain/fullchain.pem ]; then
         printf "${Green} 🎉 Certificates are created successfully ${NC} \n";
