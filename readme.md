@@ -8,7 +8,7 @@
 " alt="shields" /></p>
 
 <h2>Screen Shot</h2>
-<img src="https://s8.uupload.ir/files/screenshot_from_2024-03-11_11-16-57_fwd.png" alt="screenshot" />
+<img src="https://s8.uupload.ir/files/screenshot_from_2024-03-11_15-27-00_fyzj.png" alt="screenshot" />
   
 <h2>🧐 Features</h2>
 
