@@ -409,6 +409,26 @@ installDocker() {
     main;
 }
 
+# Show current hostname
+showHostname() {
+    echo sudo hostnamectl --pretty
+    # wait 5 secound
+    sleep 5;
+    main;
+}
+
+# Change Hostname
+changeHostname() {
+    read -p "Enter the new hostname: " hostname
+    sudo hostnamectl set-hostname $hostname
+    printf "${Green} 🎉 Hostname is changed ${NC} \n";
+    printf "${Green} 💁 Your Hostname information is: ${NC} \n";
+    sudo hostnamectl --pretty
+    # wait 5 secound
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -423,6 +443,7 @@ main() {
     printf "${Cyan}4. Remove a domain ${Blue}(bind9) ${Red}[Server]${NC}\n"
     printf "${Cyan}5. Get single SSL certificate for a domain ${Red}[Server]${NC}\n"
     printf "${Cyan}6. Install Docker${NC}\n"
+    printf "${Cyan}7. Change Hostname ${Purple} ($(showHostname)) ${Red}[Server]${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -444,6 +465,9 @@ main() {
             ;;
         6)
             installDocker
+            ;;
+        7)
+            changeHostname
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
