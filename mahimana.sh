@@ -476,20 +476,6 @@ getSSLWithNginx() {
         ufw allow 443 > /dev/null 2>&1;
     fi
     printf "${Blue} 🚀 Starting get SSL ... ${NC} \n";
-    # Check port 80 is not used and open
-    # Check if lsof is not installed then install
-    dpkg -s lsof > /dev/null 2>&1 || {
-        printf "${Blue} 🚀 Installing lsof ... ${NC} \n";
-        apt-get install -y lsof > /dev/null 2>&1;
-        printf "${Green} 🎉 lsof is installed ${NC} \n";
-    }
-    # if port 80 is used then exit
-    if lsof -i :80 > /dev/null 2>&1; then
-        # Get the name of process using port 80
-        process=$(lsof -i :80 | awk '{print $1}' | tail -n 1)
-        printf "${Red} ❌ Port 80 is already in use by $process ${NC} \n";
-        exit 1;
-    fi
     # Get domain
     read -p "Enter the domain: " domain
     # Get SSL
