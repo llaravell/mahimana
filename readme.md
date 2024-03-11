@@ -22,6 +22,7 @@ Here're some of the project's best features:
 *   Install Docker
 *   Change Hostname
 *   Install Nginx
+*   Get SSL with domain and Nginx
 
 <h2>🛠️ Usage</h2>
 

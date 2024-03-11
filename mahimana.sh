@@ -448,6 +448,69 @@ installNginx() {
     main;
 }
 
+# Get SSL for domain with Nginx
+getSSLWithNginx() {
+    # Check if Nginx is installed
+    if ! command -v nginx &> /dev/null; then
+        # Install nginx
+        printf "${Blue} 🚀 Installing Nginx ... ${NC} \n";
+        apt-get install -y nginx > /dev/null 2>&1 & spinner;
+        printf "${Green} 🎉 Nginx is installed ${NC} \n";
+    fi
+    # Check if certbot is installed
+    if ! command -v certbot &> /dev/null; then
+        printf "${Blue} 🚀 Installing certbot ... ${NC} \n";
+        # Check snap is installed
+        dpkg -s snapd > /dev/null 2>&1 || {
+            printf "${Blue} 🚀 Installing snap ... ${NC} \n";
+            apt-get install -y snapd > /dev/null 2>&1;
+            printf "${Green} 🎉 snap is installed ${NC} \n";
+        }
+        snap install --classic certbot > /dev/null 2>&1;
+        ln -s /snap/bin/certbot /usr/bin/certbot > /dev/null 2>&1;
+        printf "${Green} 🎉 certbot is installed ${NC} \n";
+    fi
+    # Check if ufw is installed then port 80 and 443 is open
+    if command -v ufw &> /dev/null; then
+        ufw allow 80 > /dev/null 2>&1;
+        ufw allow 443 > /dev/null 2>&1;
+    fi
+    printf "${Blue} 🚀 Starting get SSL ... ${NC} \n";
+    # Check port 80 is not used and open
+    # Check if lsof is not installed then install
+    dpkg -s lsof > /dev/null 2>&1 || {
+        printf "${Blue} 🚀 Installing lsof ... ${NC} \n";
+        apt-get install -y lsof > /dev/null 2>&1;
+        printf "${Green} 🎉 lsof is installed ${NC} \n";
+    }
+    # if port 80 is used then exit
+    if lsof -i :80 > /dev/null 2>&1; then
+        # Get the name of process using port 80
+        process=$(lsof -i :80 | awk '{print $1}' | tail -n 1)
+        printf "${Red} ❌ Port 80 is already in use by $process ${NC} \n";
+        exit 1;
+    fi
+    # Get domain
+    read -p "Enter the domain: " domain
+    # Get SSL
+    certbot --nginx -d $domain > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 SSL is created successfully ${NC} \n";
+    printf "${Green} 💁 Your SSL information is: ${NC} \n";
+    certbot certificates -d $domain
+    # Check if certificates are created
+    if [ -f /etc/letsencrypt/live/$domain/fullchain.pem ]; then
+        printf "${Green} 🎉 Certificates are created successfully ${NC} \n";
+        printf "${Green} 💁 Your certificate information is: ${NC} \n";
+        certbot certificates -d $domain
+        # wait 5 secound
+        sleep 5;
+        main;
+    else
+        printf "${Red} ❌ Certificates are not created ${NC} \n";
+        exit 1;
+    fi
+}
+
 # Main
 main() {
     clear
@@ -464,6 +527,7 @@ main() {
     printf "${Cyan}6. Install Docker${NC}\n"
     printf "${Cyan}7. Change Hostname ${Purple} ($(showHostname)) ${Red}[Server]${NC}\n"
     printf "${Cyan}8. Install Nginx${NC}\n"
+    printf "${Cyan}9. Get SSL for domain with Nginx${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -491,6 +555,9 @@ main() {
             ;;
         8)
             installNginx
+            ;;
+        9)
+            getSSLWithNginx
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
