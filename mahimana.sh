@@ -411,7 +411,7 @@ installDocker() {
 
 # Show current hostname
 showHostname() {
-    echo sudo hostnamectl --pretty
+    echo hostnamectl --static
     # wait 5 secound
     sleep 5;
     main;
@@ -420,10 +420,10 @@ showHostname() {
 # Change Hostname
 changeHostname() {
     read -p "Enter the new hostname: " hostname
-    sudo hostnamectl set-hostname $hostname
+    hostnamectl set-hostname $hostname
     printf "${Green} 🎉 Hostname is changed ${NC} \n";
     printf "${Green} 💁 Your Hostname information is: ${NC} \n";
-    sudo hostnamectl --pretty
+    hostnamectl --pretty
     # wait 5 secound
     sleep 5;
     main;
