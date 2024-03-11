@@ -427,6 +427,27 @@ changeHostname() {
     main;
 }
 
+# Install Nginx
+installNginx() {
+    # Check if nginx is installed or not
+    if command -v nginx &> /dev/null; then
+        printf "${Green} ✅ Nginx is already installed ${NC} \n";
+    else
+    printf "${Blue} 🚀 Starting Install Nginx ... ${NC} \n";
+    apt-get install -y nginx > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 Install Nginx is complete ${NC} \n";
+    fi
+    # Start and enable nginx
+    systemctl start nginx > /dev/null 2>&1 & spinner;
+    systemctl enable nginx > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 Nginx is running ${NC} \n";
+    printf "${Green} 💁 Your Nginx information is: ${NC} \n";
+    nginx -v
+    # wait 5 secound
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -442,6 +463,7 @@ main() {
     printf "${Cyan}5. Get single SSL certificate for a domain ${Red}[Server]${NC}\n"
     printf "${Cyan}6. Install Docker${NC}\n"
     printf "${Cyan}7. Change Hostname ${Purple} ($(showHostname)) ${Red}[Server]${NC}\n"
+    printf "${Cyan}8. Install Nginx${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -466,6 +488,9 @@ main() {
             ;;
         7)
             changeHostname
+            ;;
+        8)
+            installNginx
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"

@@ -21,6 +21,7 @@ Here're some of the project's best features:
 *   Get single SSL for a domain with <span style="color:red">Certbot</span>
 *   Install Docker
 *   Change Hostname
+*   Install Nginx
 
 <h2>🛠️ Usage</h2>
 
