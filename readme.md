@@ -8,7 +8,7 @@
 " alt="shields" /></p>
 
 <h2>Screen Shot</h2>
-<img src="https://s8.uupload.ir/files/screenshot_from_2024-03-11_15-27-00_fyzj.png" alt="screenshot" />
+<img src="https://s8.uupload.ir/files/screenshot_from_2024-03-11_16-00-49_n3t2.png" alt="screenshot" />
   
 <h2>🧐 Features</h2>
 
@@ -23,6 +23,7 @@ Here're some of the project's best features:
 *   Change Hostname
 *   Install Nginx
 *   Get SSL with domain and Nginx
+*   Install NVM (Node Version Manager)
 
 <h2>🛠️ Usage</h2>
 

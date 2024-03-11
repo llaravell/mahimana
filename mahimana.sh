@@ -494,6 +494,21 @@ getSSLWithNginx() {
     fi
 }
 
+# Install NVM
+installNVM() {
+    printf "${Blue} 🚀 Starting install NVM ... ${NC} \n";
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh > /dev/null 2>&1 & spinner | bash > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 NVM is installed ${NC} \n";
+    # Ask for reopen shell
+    read -p "Do you want to reopen shell? (y/n): " -n 1 -r
+    echo    # (optional) move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        # Reopen shell
+        exec $SHELL
+    fi
+}
+
 # Main
 main() {
     clear
@@ -511,6 +526,7 @@ main() {
     printf "${Cyan}7. Change Hostname ${Purple} ($(showHostname)) ${Red}[Server]${NC}\n"
     printf "${Cyan}8. Install Nginx ${Red}[Server]${NC}\n"
     printf "${Cyan}9. Get SSL for domain with Nginx ${Red}[Server]${NC}\n"
+    printf "${Cyan}10. Install NVM (Node Version Manager)${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -541,6 +557,9 @@ main() {
             ;;
         9)
             getSSLWithNginx
+            ;;
+        10)
+            installNVM
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
