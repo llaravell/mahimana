@@ -509,8 +509,8 @@ main() {
     printf "${Cyan}5. Get single SSL certificate for a domain ${Red}[Server]${NC}\n"
     printf "${Cyan}6. Install Docker${NC}\n"
     printf "${Cyan}7. Change Hostname ${Purple} ($(showHostname)) ${Red}[Server]${NC}\n"
-    printf "${Cyan}8. Install Nginx${NC}\n"
-    printf "${Cyan}9. Get SSL for domain with Nginx${NC}\n"
+    printf "${Cyan}8. Install Nginx ${Red}[Server]${NC}\n"
+    printf "${Cyan}9. Get SSL for domain with Nginx ${Red}[Server]${NC}\n"
 
     read -p "Enter your choice: " choice
 
