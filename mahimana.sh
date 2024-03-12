@@ -509,6 +509,28 @@ installNVM() {
     fi
 }
 
+# Add SSH key
+addSSHKey() {
+    printf "${Blue} 🚀 Starting add SSH key ... ${NC} \n";
+    # Check if .ssh folder not exists
+    if [ ! -d /root/.ssh ]; then
+        mkdir /root/.ssh
+    fi
+    # Check if authorized_keys file not exists
+    if [ ! -f /root/.ssh/authorized_keys ]; then
+        touch /root/.ssh/authorized_keys
+    fi
+    # Show info about how to create SSH key
+    printf "${Green} 💁 How to create SSH key ${NC} \n";
+    printf "${Green} Run: ssh-keygen -t rsa ${NC} \n";
+    printf "${Green} Run: cat ~/.ssh/id_rsa.pub ${NC} \n";
+
+    # Add SSH key
+    read -p "Enter your SSH key: " -r ssh_key
+    echo "$ssh_key" >> /root/.ssh/authorized_keys
+    printf "${Green} 🎉 SSH key is added ${NC} \n";
+}
+
 # Main
 main() {
     clear
@@ -527,6 +549,7 @@ main() {
     printf "${Cyan}8. Install Nginx ${Red}[Server]${NC}\n"
     printf "${Cyan}9. Get SSL for domain with Nginx ${Red}[Server]${NC}\n"
     printf "${Cyan}10. Install NVM (Node Version Manager)${NC}\n"
+    printf "${Cyan}11. Add SSH Key ${Red}[Server]${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -560,6 +583,9 @@ main() {
             ;;
         10)
             installNVM
+            ;;
+        11)
+            addSSHKey
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
