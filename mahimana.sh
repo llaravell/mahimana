@@ -531,6 +531,63 @@ addSSHKey() {
     printf "${Green} 🎉 SSH key is added ${NC} \n";
 }
 
+# Show Open ports
+showOpenPorts() {
+    if command -v ufw &> /dev/null; then
+        message=$(ufw status | grep -q "Status: active" && echo "ufw is enabled" || echo "ufw is disabled");
+        # Check if message is "ufw is enabled" then show open ports
+        if [ "$message" == "ufw is enabled" ]; then
+        # Get all open ports and concat together with - ==> | tr '\n' '-' | sed 's/-$//'
+            openPorts=$(ufw status | grep "ALLOW" | awk '{print $1}')
+            printf "${Purple}Open ports:\n$openPorts\n ${NC}";
+        else
+            echo "$message";
+        fi
+    else
+        echo "ufw is not installed"
+    fi
+    # Ask for back to main
+    read -p "Do you want to back to main menu? (y/n): " -n 1 -r
+    echo    # (optional) move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        main
+    fi
+}
+
+# Check Firewall
+CheckFirewall() {
+    if command -v ufw &> /dev/null; then
+        message=$(ufw status | grep -q "Status: active" && echo "ufw is enabled" || echo "ufw is disabled");
+        echo "$message";
+    else
+        echo "ufw is not installed"
+    fi
+}
+
+# Change Firewall status
+ChangeFirewallStatus() {
+    if command -v ufw &> /dev/null; then
+        # Check if ufw is disabled the enable it and if it is enabled then disable it
+        if ufw status | grep "Status: inactive"; then
+            read -p "Enter the ports that you want to open: (separated by comma)" port;
+            for p in $(echo $port | sed "s/,/ /g"); do
+                ufw allow $p > /dev/null 2>&1;
+            done
+            ufw enable;
+        else
+            ufw disable;
+        fi
+        printf "${Green} 🎉 Firewall is changed ${NC} \n";
+        CheckFirewall
+    else
+        echo "ufw is not installed";
+    fi
+    # Sleep 5sec
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -550,6 +607,8 @@ main() {
     printf "${Cyan}9. Get SSL for domain with Nginx ${Red}[Server]${NC}\n"
     printf "${Cyan}10. Install NVM (Node Version Manager)${NC}\n"
     printf "${Cyan}11. Add SSH Key ${Red}[Server]${NC}\n"
+    printf "${Cyan}12. Active or deactive Firewall ${Purple}($(CheckFirewall))${NC}\n"
+    printf "${Cyan}13. Show all Firewall open ports${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -586,6 +645,12 @@ main() {
             ;;
         11)
             addSSHKey
+            ;;
+        12)
+            ChangeFirewallStatus
+            ;;
+        13)
+            showOpenPorts
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
