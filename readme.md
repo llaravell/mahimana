@@ -4,8 +4,11 @@
 
 <p id="description">Mahimana is an automatic script that creates to help you manage your server easily with a lot of amazing tools</p>
 
-<p align="center"><img src="https://img.shields.io/github/license/llaravell/mahimana" alt="shields"> <img src="https://img.shields.io/github/repo-size/llaravell/mahimana" alt="shields"> <img src="https://img.shields.io/github/v/release/llaravell/mahimana
-" alt="shields" /></p>
+<p align="center">
+  <img src="https://img.shields.io/github/license/llaravell/mahimana" alt="shields"/>
+  <img src="https://img.shields.io/github/repo-size/llaravell/mahimana" alt="shields"/>
+  <img src="https://img.shields.io/github/v/release/llaravell/mahimana" alt="shields"/>
+</p>
 
 <h2>Screen Shot</h2>
 <img src="https://s8.uupload.ir/files/screenshot_from_2024-03-13_15-54-43_awyr.png" alt="screenshot" />
