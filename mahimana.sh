@@ -600,6 +600,16 @@ openNewPort() {
     main;
 }
 
+# Close port
+closePort() {
+    read -p "Enter the port: " port
+    printf "${Blue} 🚀 Closing port ... ${NC} \n";
+    ufw deny $port > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 Firewall is closed sucessfully ${NC} \n";
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -622,6 +632,7 @@ main() {
     printf "${Cyan}12. Active or deactive Firewall ${Purple}($(CheckFirewall))${NC}\n"
     printf "${Cyan}13. Show all Firewall open ports${NC}\n"
     printf "${Cyan}14. Open new port Firewall${NC}\n"
+    printf "${Cyan}15. Close port Firewall${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -667,6 +678,9 @@ main() {
             ;;
         14)
             openNewPort
+            ;;
+        15)
+            closePort
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
