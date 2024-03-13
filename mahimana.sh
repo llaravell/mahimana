@@ -610,6 +610,27 @@ closePort() {
     main;
 }
 
+# Add user
+addUser() {
+    read -p "Enter the username: " username
+    stty -echo
+    read -p "Enter the password: " password
+    stty echo
+    printf "\n${Blue} 🚀 Adding user ... ${NC} \n";
+    adduser --disabled-password --gecos "" $username > /dev/null 2>&1 & spinner;
+    echo "$username:$password" | chpasswd > /dev/null 2>&1 & spinner;
+    # Ask to be admin
+    read -p "Are $username is admin? (y/n): " -n 1 -r
+    echo    # (optional) move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        usermod -aG sudo $username
+    fi
+    printf "${Green} 🎉 User is added sucessfully ${NC} \n";
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -633,6 +654,7 @@ main() {
     printf "${Cyan}13. Show all Firewall open ports${NC}\n"
     printf "${Cyan}14. Open new port Firewall${NC}\n"
     printf "${Cyan}15. Close port Firewall${NC}\n"
+    printf "${Cyan}16. Add new OS user${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -681,6 +703,9 @@ main() {
             ;;
         15)
             closePort
+            ;;
+        16)
+            addUser
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"

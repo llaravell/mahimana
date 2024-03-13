@@ -8,7 +8,7 @@
 " alt="shields" /></p>
 
 <h2>Screen Shot</h2>
-<img src="https://s8.uupload.ir/files/screenshot_from_2024-03-13_13-56-52_328j.png" alt="screenshot" />
+<img src="https://s8.uupload.ir/files/screenshot_from_2024-03-13_15-54-43_awyr.png" alt="screenshot" />
   
 <h2>🧐 Features</h2>
 
@@ -27,10 +27,11 @@ Here're some of the project's best features:
 *   Get SSL with domain and Nginx
 *   Install NVM (Node Version Manager)
 *   Add SSH key
-*   Active or deactivate firewall
-*   Show all open ports firewall
-*   Open new port firewall
-*   Close a port firewall
+*   Active or deactivate <span style="color:red">firewall</span>
+*   Show all open ports <span style="color:red">firewall</span>
+*   Open new port <span style="color:red">firewall</span>
+*   Close a port <span style="color:red">firewall</span>
+*   Add new OS user
 
 <h2>🛠️ Usage</h2>
 
