@@ -29,6 +29,7 @@ Here're some of the project's best features:
 *   Add SSH key
 *   Active or deactivate firewall
 *   Show all open ports firewall
+*   Open new port firewall
 
 <h2>🛠️ Usage</h2>
 

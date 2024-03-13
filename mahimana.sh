@@ -569,21 +569,33 @@ CheckFirewall() {
 ChangeFirewallStatus() {
     if command -v ufw &> /dev/null; then
         # Check if ufw is disabled the enable it and if it is enabled then disable it
-        if ufw status | grep "Status: inactive"; then
+        if ufw status | grep "Status: inactive" > /dev/null 2>&1; then
             read -p "Enter the ports that you want to open: (separated by comma)" port;
+            printf "${Blue} 🚀 Starting Firewall and opening ports ... ${NC} \n";
             for p in $(echo $port | sed "s/,/ /g"); do
                 ufw allow $p > /dev/null 2>&1;
             done
-            ufw enable;
+            ufw enable > /dev/null 2>&1 & spinner;
+            printf "${Green} 🎉 Firewall is started ${NC} \n";
         else
-            ufw disable;
+            printf "${Blue} 🚀 Stopping Firewall ... ${NC} \n";
+            ufw disable > /dev/null 2>&1 & spinner;
+            printf "${Green} 🎉 Firewall is stopped ${NC} \n";
         fi
-        printf "${Green} 🎉 Firewall is changed ${NC} \n";
-        CheckFirewall
     else
         echo "ufw is not installed";
     fi
     # Sleep 5sec
+    sleep 5;
+    main;
+}
+
+# Open new port
+openNewPort() {
+    read -p "Enter the new port: " new_port
+    printf "${Blue} 🚀 Opening port ... ${NC} \n";
+    ufw allow $new_port > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 Firewall is opened sucessfully ${NC} \n";
     sleep 5;
     main;
 }
@@ -609,6 +621,7 @@ main() {
     printf "${Cyan}11. Add SSH Key ${Red}[Server]${NC}\n"
     printf "${Cyan}12. Active or deactive Firewall ${Purple}($(CheckFirewall))${NC}\n"
     printf "${Cyan}13. Show all Firewall open ports${NC}\n"
+    printf "${Cyan}14. Open new port Firewall${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -651,6 +664,9 @@ main() {
             ;;
         13)
             showOpenPorts
+            ;;
+        14)
+            openNewPort
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
