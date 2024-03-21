@@ -497,7 +497,25 @@ getSSLWithNginx() {
 # Install NVM
 installNVM() {
     printf "${Blue} 🚀 Starting install NVM ... ${NC} \n";
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh > /dev/null 2>&1 & spinner | bash > /dev/null 2>&1 & spinner;
+    # Check if nvm is installed
+    if command -v nvm &> /dev/null; then
+        printf "${Green} ✅ NVM is already installed ${NC} \n";
+        printf "${Green} 💁 Your NVM information is: ${NC} \n";
+        nvm --version;
+        
+        # wait 5 secound
+        sleep 5;
+        main;
+    fi
+
+    # Check if curl is not installed
+    if ! command -v curl &> /dev/null; then
+        # Install curl
+        printf "${Blue} 🚀 Installing curl ... ${NC} \n";
+        apt-get install -y curl > /dev/null 2>&1 & spinner;
+        printf "${Green} 🎉 curl is installed ${NC} \n";
+    fi
+    bash <(curl -sL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh) > /dev/null 2>&1 & spinner;
     printf "${Green} 🎉 NVM is installed ${NC} \n";
     # Ask for reopen shell
     read -p "Do you want to reopen shell? (y/n): " -n 1 -r
@@ -507,6 +525,13 @@ installNVM() {
         # Reopen shell
         exec $SHELL
     fi
+
+    # Show nvm version
+    printf "${Blue} 💁 Your nvm version is: ${NC} \n";
+    nvm --version; 
+    # wait 5 secound
+    sleep 5;
+    main;
 }
 
 # Add SSH key
