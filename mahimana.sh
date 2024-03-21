@@ -529,6 +529,10 @@ addSSHKey() {
     read -p "Enter your SSH key: " -r ssh_key
     echo "$ssh_key" >> /root/.ssh/authorized_keys
     printf "${Green} 🎉 SSH key is added ${NC} \n";
+
+    # Sleep 5 secound
+    sleep 5;
+    main;
 }
 
 # Show Open ports
