@@ -35,6 +35,7 @@ Here're some of the project's best features:
 *   Open new port <span style="color:red">firewall</span>
 *   Close a port <span style="color:red">firewall</span>
 *   Add new OS user
+*   Change password for users
 
 <h2>🛠️ Usage</h2>
 

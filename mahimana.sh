@@ -660,6 +660,24 @@ addUser() {
     main;
 }
 
+changePassword() {
+    read -p "Enter the username: " username
+    # Check if user exists
+    if ! id -u $username > /dev/null 2>&1; then
+        printf "${RED}❌ User $username does not exist ${NC}\n";
+        sleep 5;
+        main;
+    fi
+    stty -echo
+    read -p "Enter the password: " password
+    stty echo
+    printf "\n${Blue} 🚀 Changing password ... ${NC} \n";
+    echo "$username:$password" | chpasswd > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 Password is changed sucessfully ${NC} \n";
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -684,6 +702,7 @@ main() {
     printf "${Cyan}14. Open new port Firewall${NC}\n"
     printf "${Cyan}15. Close port Firewall${NC}\n"
     printf "${Cyan}16. Add new OS user${NC}\n"
+    printf "${Cyan}17. Change Password for OS user${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -735,6 +754,9 @@ main() {
             ;;
         16)
             addUser
+            ;;
+        17)
+            changePassword
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
