@@ -678,6 +678,16 @@ changePassword() {
     main;
 }
 
+# Delete User
+deleteUser() {
+    read -p "Enter the username: " username
+    printf "${Blue} 🚀 Deleting user ... ${NC} \n";
+    userdel -r $username > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 User is deleted sucessfully ${NC} \n";
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -703,6 +713,7 @@ main() {
     printf "${Cyan}15. Close port Firewall${NC}\n"
     printf "${Cyan}16. Add new OS user${NC}\n"
     printf "${Cyan}17. Change Password for OS user${NC}\n"
+    printf "${Cyan}18. Delete OS user${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -757,6 +768,9 @@ main() {
             ;;
         17)
             changePassword
+            ;;
+        18)
+            deleteUser
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
