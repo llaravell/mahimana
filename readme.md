@@ -11,7 +11,7 @@
 </p>
 
 <h2>Screen Shot</h2>
-<img src="https://s8.uupload.ir/files/screenshot_from_2024-03-13_15-54-43_awyr.png" alt="screenshot" />
+<img src="https://s8.uupload.ir/files/screenshot_from_2024-05-12_11-58-07_lfw8.png" alt="screenshot" />
   
 <h2>🧐 Features</h2>
 
