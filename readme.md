@@ -38,6 +38,7 @@ Here're some of the project's best features:
 *   Change password for users
 *   Delete an user
 *   Install X-UI (MHSanaei)
+*   Install Hiddify
 
 <h2>🛠️ Usage</h2>
 

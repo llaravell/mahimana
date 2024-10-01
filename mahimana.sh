@@ -697,6 +697,14 @@ installXUI() {
     main;
 }
 
+InstallHiddify() {
+    printf "${Blue} 🚀 Starting install Hiddify ... ${NC} \n";
+    bash <(curl i.hiddify.com/release)
+    printf "${Green} 🎉 Hiddify is installed ${NC} \n";
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -724,6 +732,7 @@ main() {
     printf "${Cyan}17. Change Password for OS user${NC}\n"
     printf "${Cyan}18. Delete OS user${NC}\n"
     printf "${Cyan}19. Install x-ui${NC}\n"
+    printf "${Cyan}20. Install Hiddify${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -784,6 +793,9 @@ main() {
             ;;
         19)
             installXUI
+            ;;
+        20)
+            InstallHiddify
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
