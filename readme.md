@@ -39,6 +39,7 @@ Here're some of the project's best features:
 *   Delete an user
 *   Install X-UI (MHSanaei)
 *   Install Hiddify
+*   Install Marzban
 
 <h2>🛠️ Usage</h2>
 

@@ -705,6 +705,14 @@ InstallHiddify() {
     main;
 }
 
+InstallMarzban() {
+    printf "${Blue} 🚀 Starting install Marzban ... ${NC} \n";
+    bash -c "$(curl -sL https://github.com/Gozargah/Marzban-scripts/raw/master/marzban.sh)" @ install
+    printf "${Green} 🎉 Marzban is installed ${NC} \n";
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -733,6 +741,7 @@ main() {
     printf "${Cyan}18. Delete OS user${NC}\n"
     printf "${Cyan}19. Install x-ui${NC}\n"
     printf "${Cyan}20. Install Hiddify${NC}\n"
+    printf "${Cyan}21. Install Marzban${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -796,6 +805,9 @@ main() {
             ;;
         20)
             InstallHiddify
+            ;;
+        21)
+            InstallMarzban
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
