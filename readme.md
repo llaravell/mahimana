@@ -37,6 +37,7 @@ Here're some of the project's best features:
 *   Add new OS user
 *   Change password for users
 *   Delete an user
+*   Install X-UI (MHSanaei)
 
 <h2>🛠️ Usage</h2>
 

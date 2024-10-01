@@ -688,6 +688,15 @@ deleteUser() {
     main;
 }
 
+# Install x-ui
+installXUI() {
+    printf "${Blue} 🚀 Starting install x-ui ... ${NC} \n";
+    bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+    printf "${Green} 🎉 x-ui is installed ${NC} \n";
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -714,6 +723,7 @@ main() {
     printf "${Cyan}16. Add new OS user${NC}\n"
     printf "${Cyan}17. Change Password for OS user${NC}\n"
     printf "${Cyan}18. Delete OS user${NC}\n"
+    printf "${Cyan}19. Install x-ui${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -771,6 +781,9 @@ main() {
             ;;
         18)
             deleteUser
+            ;;
+        19)
+            installXUI
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
