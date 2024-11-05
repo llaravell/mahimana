@@ -713,6 +713,10 @@ InstallMarzban() {
     main;
 }
 
+TorSina() {
+    bash <(curl -Ls https://raw.githubusercontent.com/sinasims/torsina/refs/heads/main/install.sh)
+}
+
 # Main
 main() {
     clear
@@ -742,6 +746,7 @@ main() {
     printf "${Cyan}19. Install x-ui${NC}\n"
     printf "${Cyan}20. Install Hiddify${NC}\n"
     printf "${Cyan}21. Install Marzban${NC}\n"
+    printf "${Cyan}22. Install TorSina${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -808,6 +813,9 @@ main() {
             ;;
         21)
             InstallMarzban
+            ;;
+        22)
+            TorSina
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
