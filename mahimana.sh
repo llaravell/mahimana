@@ -717,6 +717,11 @@ TorSina() {
     bash <(curl -Ls https://raw.githubusercontent.com/sinasims/torsina/refs/heads/main/install.sh)
 }
 
+# Install Dokploy
+dokploy() {
+    curl -sSL https://dokploy.com/install.sh | sh
+}
+
 # Main
 main() {
     clear
@@ -747,6 +752,7 @@ main() {
     printf "${Cyan}20. Install Hiddify${NC}\n"
     printf "${Cyan}21. Install Marzban${NC}\n"
     printf "${Cyan}22. Install TorSina${NC}\n"
+    printf "${Cyan}23. Install Dokploy${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -816,6 +822,9 @@ main() {
             ;;
         22)
             TorSina
+            ;;
+        23)
+            dokploy
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
