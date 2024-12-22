@@ -722,6 +722,17 @@ dokploy() {
     curl -sSL https://dokploy.com/install.sh | sh
 }
 
+# Install needed tools ( ufw, nano, lynis, fail2ban )
+neededToolsAndSecurity() {
+    printf "${Blue} 🚀 Starting install needed tools and security ... ${NC} \n";
+    apt-get update > /dev/null 2>&1 & spinner;
+    apt-get upgrade -y > /dev/null 2>&1 & spinner;
+    apt-get install -y ufw nano lynis fail2ban > /dev/null 2>&1 & spinner;
+    printf "${Green} 🎉 Needed tools and security is installed ${NC} \n";
+    sleep 5;
+    main
+}
+
 # Main
 main() {
     clear
@@ -753,6 +764,7 @@ main() {
     printf "${Cyan}21. Install Marzban${NC}\n"
     printf "${Cyan}22. Install TorSina${NC}\n"
     printf "${Cyan}23. Install Dokploy${NC}\n"
+    printf "${Cyan}24. Install needed tools and security (ufw, nano, lynis, fail2ban)${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -825,6 +837,9 @@ main() {
             ;;
         23)
             dokploy
+            ;;
+        24)
+            neededToolsAndSecurity
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
