@@ -733,6 +733,10 @@ neededToolsAndSecurity() {
     main
 }
 
+coolify() {
+    curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
+}
+
 # Main
 main() {
     clear
@@ -765,6 +769,7 @@ main() {
     printf "${Cyan}22. Install TorSina${NC}\n"
     printf "${Cyan}23. Install Dokploy${NC}\n"
     printf "${Cyan}24. Install needed tools and security (ufw, nano, lynis, fail2ban)${NC}\n"
+    printf "${Cyan}25. Install Coolify${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -840,6 +845,9 @@ main() {
             ;;
         24)
             neededToolsAndSecurity
+            ;;
+        25)
+            coolify
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
