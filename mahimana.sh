@@ -737,6 +737,14 @@ coolify() {
     curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
 }
 
+installTXUI() {
+  printf "${Blue} 🚀 Starting install TX-UI ... ${NC} \n";
+  bash <(curl -Ls https://raw.githubusercontent.com/AghayeCoder/tx-ui/master/install.sh);
+  printf "${Green} 🎉 TX-UI is installed ${NC} \n";
+  sleep 5;
+  main;
+}
+
 # Main
 main() {
     clear
@@ -770,6 +778,7 @@ main() {
     printf "${Cyan}23. Install Dokploy${NC}\n"
     printf "${Cyan}24. Install needed tools and security (ufw, nano, lynis, fail2ban)${NC}\n"
     printf "${Cyan}25. Install Coolify${NC}\n"
+    printf "${Cyan}26. Install TX-UI${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -848,6 +857,9 @@ main() {
             ;;
         25)
             coolify
+            ;;
+        26)
+            installTXUI
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
