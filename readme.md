@@ -11,7 +11,7 @@
 </p>
 
 <h2>Screen Shot</h2>
-<img src="https://s8.uupload.ir/files/screenshot_from_2024-05-12_11-58-07_lfw8.png" alt="screenshot" />
+<img src="https://s6.uupload.ir/files/screenshot_from_2025-03-19_22-38-46_byyw.png" alt="screenshot" />
   
 <h2>🧐 Features</h2>
 
@@ -40,6 +40,11 @@ Here're some of the project's best features:
 *   Install X-UI (MHSanaei)
 *   Install Hiddify
 *   Install Marzban
+*   Install TorSina
+*   Install Dokploy
+*   Install needed tools and security (ufw, nano, lynis, fail2ban)
+*   Install Coolify
+*   Install TX-UI
 
 <h2>🛠️ Usage</h2>
 
