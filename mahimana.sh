@@ -772,7 +772,6 @@ DISK_USED=$(df -m / | awk 'NR==2 {print $3}')
 DISK_TOTAL=$(df -m / | awk 'NR==2 {print $2}')
 USERS=$(who | wc -l)
 USER=$(whoami)
-UID=$(id -u)
 
 IP_INFO=$(curl -s https://ipapi.co/json)
 IP_PUBLIC=$(echo "$IP_INFO" | grep -oP '"ip":\s*"\K[^"]+')
@@ -827,7 +826,7 @@ echo -e "${CYAN}┃${RESET} 🌍 Public IP  : $IP_PUBLIC  ($FLAG $COUNTRY_NAME)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}User Info${RESET}"
-echo -e "${CYAN}┃${RESET} 🧑 User       : $USER (UID $UID)"
+echo -e "${CYAN}┃${RESET} 🧑 User       : $USER"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "${DIM}MOTD generated with ❤️  by you. ${RESET}"
 EOF
@@ -837,9 +836,6 @@ EOF
     sudo chmod -x /etc/update-motd.d/*
     sudo chmod +x "$path"
     printf "${Green} 🎉 MOTD is changed ${NC} \n";
-    printf "${Yellow}-------------------------------------------${NC}\n"
-    printf "${Green} 💁 Your MOTD information is: ${NC} \n";
-    cat /etc/update-motd.d/00-awesome-motd
     sleep 5;
     main;
 }
