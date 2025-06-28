@@ -818,6 +818,7 @@ echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━�
 
 echo -e "${CYAN}┏━ ${BOLD}Resources${RESET}"
 echo -e "${CYAN}┃${RESET} 💾 Memory     : $(progress_bar $MEM_USED $MEM_TOTAL)  ${MEM_USED}MiB / ${MEM_TOTAL}MiB"
+echo -e "${CYAN}┃
 echo -e "${CYAN}┃${RESET} 🗄️  Disk       : $(progress_bar $DISK_USED $DISK_TOTAL)  ${DISK_USED}MiB / ${DISK_TOTAL}MiB"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
