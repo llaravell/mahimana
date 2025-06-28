@@ -846,7 +846,7 @@ echo ""
 
 echo -e "${CYAN}┏━ ${BOLD}System${RESET}"
 echo -e "${CYAN}┃"
-echo -e "${CYAN}┃${RESET} 🖥️  Hostname    : $HOST"
+echo -e "${CYAN}┃${RESET} 🖥️  Hostname   : $HOST"
 echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🐧 OS         : $OS"
 echo -e "${CYAN}┃"
