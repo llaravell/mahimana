@@ -746,7 +746,6 @@ installTXUI() {
 }
 
 ChangeMOTD() {
-    read -p "Enter the MOTD: " MOTD
     printf "${Blue} 🚀 Changing MOTD ... ${NC} \n";
     local path="/etc/update-motd.d/00-awesome-motd"
     tee "$path" > /dev/null <<'EOF'
