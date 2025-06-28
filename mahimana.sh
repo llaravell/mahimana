@@ -845,7 +845,7 @@ echo -e "${BOLD}${MAGENTA}🎉 Welcome to $COUNTRY_NAME server! 🎉${RESET}"
 echo ""
 
 echo -e "${CYAN}┏━ ${BOLD}System${RESET}"
-echo -e "${CYAN}┃${RESET} 🖥️  Hostname  : $HOST"
+echo -e "${CYAN}┃${RESET} 🖥️  Hostname   : $HOST"
 echo -e "${CYAN}┃${RESET} 🐧 OS         : $OS"
 echo -e "${CYAN}┃${RESET} 🧠 Kernel     : $KERNEL"
 echo -e "${CYAN}┃${RESET} ⏱️  Uptime     : $UPTIME"
