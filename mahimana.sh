@@ -801,12 +801,16 @@ fi
 flag_emoji() {
   local cc=$(echo "$1" | tr '[:lower:]' '[:upper:]')
   if [[ ! "$cc" =~ ^[A-Z]{2}$ ]]; then
-    echo -e "🏳️"
+    echo "🏳️"
     return
   fi
-  local first=$((0x1F1E6 + $(printf "%d" "'${cc:0:1}") - 65))
-  local second=$((0x1F1E6 + $(printf "%d" "'${cc:1:1}") - 65))
-  printf "\\U%08x\\U%08x\n" "$first" "$second" | python3 -c 'import sys; print(sys.stdin.read().encode().decode("unicode-escape"))'
+  local first_char=${cc:0:1}
+  local second_char=${cc:1:1}
+
+  local first_code=$((0x1F1E6 + $(printf '%d' "'$first_char") - 65))
+  local second_code=$((0x1F1E6 + $(printf '%d' "'$second_char") - 65))
+
+  printf "$(printf "\\U%08x\\U%08x" "$first_code" "$second_code" | iconv -f UTF-32BE -t UTF-8)"
 }
 FLAG=$(flag_emoji "$COUNTRY_CODE")
 
