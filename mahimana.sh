@@ -790,16 +790,16 @@ fi
 # Country detection
 if [[ "$IP4" != "Not found" ]]; then
   COUNTRY_LINE=$(geoiplookup "$IP4")
-  COUNTRY_NAME=$(echo "$COUNTRY_LINE" | cut -d: -f2 | sed 's/^ //')
-  COUNTRY_CODE=$(echo "$COUNTRY_LINE" | grep -oP '\((\K[A-Z]+)')
+  COUNTRY_NAME=$(echo "$COUNTRY_LINE" | cut -d: -f2 | sed 's/^ *//')
+  COUNTRY_CODE=$(echo "$COUNTRY_LINE" | awk -F': ' '{print $2}' | cut -d',' -f1 | tr -d ' ' | tr '[:lower:]' '[:upper:]')
 else
   COUNTRY_NAME="Unknown"
   COUNTRY_CODE="--"
 fi
 
-# Flag emoji
+# Flag emoji function
 flag_emoji() {
-  local cc=$(echo "$1" | tr '[:lower:]' '[:upper:]')
+  local cc=$1
   if [[ ! "$cc" =~ ^[A-Z]{2}$ ]]; then
     echo "🏳️"
     return
