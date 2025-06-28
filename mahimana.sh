@@ -838,19 +838,12 @@ echo -e "${BOLD}${MAGENTA}🎉 Welcome to $COUNTRY_NAME server! 🎉${RESET}"
 echo ""
 
 echo -e "${CYAN}┏━ ${BOLD}System${RESET}"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🖥️  Hostname    : $HOST"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🐧 OS         : $OS"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🧠 Kernel     : $KERNEL"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} ⏱️  Uptime     : $UPTIME"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 📊 Load Avg   : $LOAD"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 👥 Users      : $USERS"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}Resources${RESET}"
@@ -861,16 +854,13 @@ echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━�
 
 echo -e "${CYAN}┏━ ${BOLD}Network${RESET}"
 echo -e "${CYAN}┃${RESET} 🌐 Local IP   : $IP_LOCAL"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🌍 Public IP  : $IP_PUBLIC  ($FLAG $COUNTRY_NAME)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}User Info${RESET}"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🧑 User       : $USER (UID $USER_ID)"
-echo -e "${CYAN}┃"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${DIM}MOTD generated with ❤️  by you. ${RESET}"
+echo -e "${DIM}MOTD generated with ❤️  by Taha Shokri. ${RESET}"
 EOF
 
     echo "🧰 Setting permissions..."
