@@ -788,11 +788,9 @@ CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
 CPU_CORES=$(nproc)
 CPU_USED_CORES=$(awk -v usage="$CPU_USAGE" -v cores="$CPU_CORES" 'BEGIN { printf "%.1f", usage * cores / 100 }')
 
-# Get public IP
-IP_PUBLIC=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}' | head -n1)
-if [[ -z "$IP_PUBLIC" ]]; then
-  IP_PUBLIC=$(dig TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
-fi
+# Get public IP (only using dig)
+IP_PUBLIC=$(dig TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
+
 if [[ -z "$IP_PUBLIC" ]]; then
   IP_PUBLIC="IP Address not found"
 fi
