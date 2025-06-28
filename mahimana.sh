@@ -772,11 +772,12 @@ DISK_USED=$(df -m / | awk 'NR==2 {print $3}')
 DISK_TOTAL=$(df -m / | awk 'NR==2 {print $2}')
 USERS=$(who | wc -l)
 USER=$(whoami)
+UID=$(id -u)
 
-IP_INFO=$(curl -s https://ipapi.co/json)
+IP_INFO=$(curl -s https://api.myip.com)
 IP_PUBLIC=$(echo "$IP_INFO" | grep -oP '"ip":\s*"\K[^"]+')
-COUNTRY_CODE=$(echo "$IP_INFO" | grep -oP '"country_code":\s*"\K[^"]+')
-COUNTRY_NAME=$(echo "$IP_INFO" | grep -oP '"country_name":\s*"\K[^"]+')
+COUNTRY_CODE=$(echo "$IP_INFO" | grep -oP '"cc":\s*"\K[^"]+')
+COUNTRY_NAME=$(echo "$IP_INFO" | grep -oP '"country":\s*"\K[^"]+')
 FLAG=$(curl -s "https://flagcdn.com/${COUNTRY_CODE,,}.txt" 2>/dev/null | head -n 1 || echo "$COUNTRY_CODE")
 
 progress_bar() {
@@ -826,7 +827,7 @@ echo -e "${CYAN}┃${RESET} 🌍 Public IP  : $IP_PUBLIC  ($FLAG $COUNTRY_NAME)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}User Info${RESET}"
-echo -e "${CYAN}┃${RESET} 🧑 User       : $USER"
+echo -e "${CYAN}┃${RESET} 🧑 User       : $USER (UID $UID)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "${DIM}MOTD generated with ❤️  by you. ${RESET}"
 EOF
