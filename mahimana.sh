@@ -790,53 +790,71 @@ flag_emoji() {
 FLAG=$(flag_emoji "$COUNTRY_CODE")
 
 progress_bar() {
-local used=$1
-local total=$2
-local width=24
-local ratio=$(awk "BEGIN {printf \"%.2f\", $used / $total}")
-local fill=$(awk "BEGIN {printf \"%d\", $ratio * $width}")
-local empty=$((width - fill))
+  local used=$1
+  local total=$2
+  local width=24
+  local ratio fill empty percent COLOR bar
 
-if (( $(echo "$ratio < 0.5" | bc -l) )); then
+  ratio=$(awk -v u="$used" -v t="$total" 'BEGIN { if (t > 0) printf "%.2f", u / t; else print 0 }')
+  fill=$(awk -v r="$ratio" -v w="$width" 'BEGIN { printf "%d", r * w }')
+  empty=$((width - fill))
+
+  if (( $(echo "$ratio < 0.5" | bc -l) )); then
     COLOR=$GREEN
-elif (( $(echo "$ratio < 0.8" | bc -l) )); then
+  elif (( $(echo "$ratio < 0.8" | bc -l) )); then
     COLOR=$YELLOW
-else
+  else
     COLOR=$RED
-fi
+  fi
 
-local bar="${COLOR}"; for ((i=0;i<fill;i++)); do bar+="█"; done
-bar+="${DIM}"; for ((i=0;i<empty;i++)); do bar+="░"; done
-bar+="${RESET}"
-printf "$bar  $(awk \"BEGIN {printf \"%.0f\", $ratio * 100}\")%%"
+  bar="${COLOR}"
+  for ((i = 0; i < fill; i++)); do bar+="█"; done
+  bar+="${DIM}"
+  for ((i = 0; i < empty; i++)); do bar+="░"; done
+  bar+="${RESET}"
+  percent=$(awk -v r="$ratio" 'BEGIN { printf "%.0f", r * 100 }')
+
+  printf "%s  %s%%" "$bar" "$percent"
 }
 
 clear
 neofetch --ascii_distro auto --color_blocks off --disable packages
 echo ""
-echo -e "${BOLD}${MAGENTA}🎉 Welcome to your awesome server! 🎉${RESET}"
+echo -e "${BOLD}${MAGENTA}🎉 Welcome to $COUNTRY_NAME server! 🎉${RESET}"
 echo ""
 
 echo -e "${CYAN}┏━ ${BOLD}System${RESET}"
+echo -e "${CYAN}┃"
+echo -e "${CYAN}┃${RESET} 🖥️  Hostname    : $HOST"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🐧 OS         : $OS"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🧠 Kernel     : $KERNEL"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} ⏱️  Uptime     : $UPTIME"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 📊 Load Avg   : $LOAD"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 👥 Users      : $USERS"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}Resources${RESET}"
 echo -e "${CYAN}┃${RESET} 💾 Memory     : $(progress_bar $MEM_USED $MEM_TOTAL)  ${MEM_USED}MiB / ${MEM_TOTAL}MiB"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🗄️  Disk       : $(progress_bar $DISK_USED $DISK_TOTAL)  ${DISK_USED}MiB / ${DISK_TOTAL}MiB"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}Network${RESET}"
 echo -e "${CYAN}┃${RESET} 🌐 Local IP   : $IP_LOCAL"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🌍 Public IP  : $IP_PUBLIC  ($FLAG $COUNTRY_NAME)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}User Info${RESET}"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🧑 User       : $USER (UID $USER_ID)"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "${DIM}MOTD generated with ❤️  by you. ${RESET}"
 EOF
