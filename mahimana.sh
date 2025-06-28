@@ -746,9 +746,8 @@ installTXUI() {
 }
 
 ChangeMOTD() {
-    printf "${Blue} 🚀 Changing MOTD ... ${NC} \n";
+    printf "${Blue} 🚀 Changing MOTD ... ${NC} \n"
 
-    # نصب ابزارهای لازم
     command -v neofetch >/dev/null 2>&1 || {
         echo -e "${DIM}Installing neofetch...${RESET}"
         apt-get update -qq && apt-get install -y neofetch >/dev/null 2>&1
@@ -781,15 +780,20 @@ USERS=$(who | wc -l)
 USER=$(whoami)
 USER_ID=$(id -u)
 
-# Get public IP (needs internet only for this part)
-IP_PUBLIC=$(curl -s https://ifconfig.me)
+# گرفتن آی‌پی عمومی واقعی با route lookup (بدون اینترنت)
+IP_PUBLIC=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}' | head -n1)
 
-# Get country info via local GeoIP database
-COUNTRY_LINE=$(geoiplookup "$IP_PUBLIC")
-COUNTRY_NAME=$(echo "$COUNTRY_LINE" | cut -d: -f2 | sed 's/^ //')
-COUNTRY_CODE=$(echo "$COUNTRY_LINE" | grep -oP '\((\K[A-Z]+)')
+# تشخیص کشور با geoiplookup
+if [[ -n "$IP_PUBLIC" ]]; then
+  COUNTRY_LINE=$(geoiplookup "$IP_PUBLIC")
+  COUNTRY_NAME=$(echo "$COUNTRY_LINE" | cut -d: -f2 | sed 's/^ //')
+  COUNTRY_CODE=$(echo "$COUNTRY_LINE" | grep -oP '\((\K[A-Z]+)')
+else
+  COUNTRY_NAME="Unknown"
+  COUNTRY_CODE="--"
+fi
 
-# Convert country code to emoji flag
+# ساخت پرچم ایموجی
 flag_emoji() {
   code=$(echo "$1" | tr '[:lower:]' '[:upper:]')
   for (( i=0; i<${#code}; i++ )); do
@@ -873,9 +877,9 @@ EOF
     sudo chmod +x "$path"
     sudo chmod -x /etc/update-motd.d/*
     sudo chmod +x "$path"
-    printf "${Green} 🎉 MOTD is changed ${NC} \n";
-    sleep 5;
-    main;
+    printf "${Green} 🎉 MOTD is changed ${NC} \n"
+    sleep 5
+    main
 }
 
 # Main
