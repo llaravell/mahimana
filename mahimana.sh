@@ -745,6 +745,106 @@ installTXUI() {
   main;
 }
 
+ChangeMOTD() {
+    read -p "Enter the MOTD: " MOTD
+    printf "${Blue} 🚀 Changing MOTD ... ${NC} \n";
+    local path="/etc/update-motd.d/00-awesome-motd"
+    tee "$path" > /dev/null <<'EOF'
+        #!/usr/bin/env bash
+
+        RESET="\e[0m"; BOLD="\e[1m"; DIM="\e[2m"
+        GREEN="\e[38;5;82m"; YELLOW="\e[38;5;220m"; RED="\e[38;5;196m"
+        CYAN="\e[38;5;51m"; MAGENTA="\e[38;5;213m"
+
+        command -v neofetch >/dev/null 2>&1 || {
+        echo -e "${DIM}Installing neofetch...${RESET}"
+        apt-get update -qq && apt-get install -y neofetch >/dev/null 2>&1
+        }
+
+        HOST=$(hostname)
+        KERNEL=$(uname -r)
+        OS=$(grep "^PRETTY_NAME=" /etc/os-release | cut -d= -f2 | tr -d '"')
+        UPTIME=$(uptime -p | sed 's/up //')
+        LOAD=$(cut -d " " -f1-3 /proc/loadavg)
+        IP_LOCAL=$(hostname -I | awk '{print $1}')
+        MEM_USED=$(free -m | awk '/Mem:/ {print $3}')
+        MEM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
+        DISK_USED=$(df -m / | awk 'NR==2 {print $3}')
+        DISK_TOTAL=$(df -m / | awk 'NR==2 {print $2}')
+        USERS=$(who | wc -l)
+        USER=$(whoami)
+        UID=$(id -u)
+
+        IP_INFO=$(curl -s https://ipapi.co/json)
+        IP_PUBLIC=$(echo "$IP_INFO" | grep -oP '"ip":\s*"\K[^"]+')
+        COUNTRY_CODE=$(echo "$IP_INFO" | grep -oP '"country_code":\s*"\K[^"]+')
+        COUNTRY_NAME=$(echo "$IP_INFO" | grep -oP '"country_name":\s*"\K[^"]+')
+        FLAG=$(curl -s "https://flagcdn.com/${COUNTRY_CODE,,}.txt" 2>/dev/null | head -n 1 || echo "$COUNTRY_CODE")
+
+        progress_bar() {
+        local used=$1
+        local total=$2
+        local width=24
+        local ratio=$(awk "BEGIN {printf \"%.2f\", $used / $total}")
+        local fill=$(awk "BEGIN {printf \"%d\", $ratio * $width}")
+        local empty=$((width - fill))
+
+        if (( $(echo "$ratio < 0.5" | bc -l) )); then
+            COLOR=$GREEN
+        elif (( $(echo "$ratio < 0.8" | bc -l) )); then
+            COLOR=$YELLOW
+        else
+            COLOR=$RED
+        fi
+
+        local bar="${COLOR}"; for ((i=0;i<fill;i++)); do bar+="█"; done
+        bar+="${DIM}"; for ((i=0;i<empty;i++)); do bar+="░"; done
+        bar+="${RESET}"
+        printf "$bar  $(awk "BEGIN {printf \"%.0f\", $ratio * 100}")%%"
+        }
+
+        clear
+        neofetch --ascii_distro auto --color_blocks off --disable packages
+        echo ""
+        echo -e "${BOLD}${MAGENTA}🎉 Welcome to your awesome server! 🎉${RESET}"
+        echo ""
+
+        echo -e "${CYAN}┏━ ${BOLD}System${RESET}"
+        echo -e "${CYAN}┃${RESET} 🐧 OS         : $OS"
+        echo -e "${CYAN}┃${RESET} 🧠 Kernel     : $KERNEL"
+        echo -e "${CYAN}┃${RESET} ⏱️  Uptime     : $UPTIME"
+        echo -e "${CYAN}┃${RESET} 📊 Load Avg   : $LOAD"
+        echo -e "${CYAN}┃${RESET} 👥 Users      : $USERS"
+        echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+        echo -e "${CYAN}┏━ ${BOLD}Resources${RESET}"
+        echo -e "${CYAN}┃${RESET} 💾 Memory     : $(progress_bar $MEM_USED $MEM_TOTAL)  ${MEM_USED}MiB / ${MEM_TOTAL}MiB"
+        echo -e "${CYAN}┃${RESET} 🗄️  Disk       : $(progress_bar $DISK_USED $DISK_TOTAL)  ${DISK_USED}MiB / ${DISK_TOTAL}MiB"
+        echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+        echo -e "${CYAN}┏━ ${BOLD}Network${RESET}"
+        echo -e "${CYAN}┃${RESET} 🌐 Local IP   : $IP_LOCAL"
+        echo -e "${CYAN}┃${RESET} 🌍 Public IP  : $IP_PUBLIC  ($FLAG $COUNTRY_NAME)"
+        echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+        echo -e "${CYAN}┏━ ${BOLD}User Info${RESET}"
+        echo -e "${CYAN}┃${RESET} 🧑 User       : $USER (UID $UID)"
+        echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+        echo -e "${DIM}MOTD generated with ❤️  by you. ${RESET}"
+EOF
+
+    echo "🧰 Setting permissions..."
+    sudo chmod +x "$path"
+    sudo chmod -x /etc/update-motd.d/*
+    sudo chmod +x "$path"
+    printf "${Green} 🎉 MOTD is changed ${NC} \n";
+    printf "${Yellow}-------------------------------------------${NC}\n"
+    printf "${Green} 💁 Your MOTD information is: ${NC} \n";
+    cat /etc/update-motd.d/00-awesome-motd
+    sleep 5;
+    main;
+}
+
 # Main
 main() {
     clear
@@ -779,6 +879,7 @@ main() {
     printf "${Cyan}24. Install needed tools and security (ufw, nano, lynis, fail2ban)${NC}\n"
     printf "${Cyan}25. Install Coolify${NC}\n"
     printf "${Cyan}26. Install TX-UI${NC}\n"
+    printf "${Cyan}27. Change MOTD${NC}\n"
 
     read -p "Enter your choice: " choice
 
@@ -860,6 +961,9 @@ main() {
             ;;
         26)
             installTXUI
+            ;;
+        27)
+            ChangeMOTD
             ;;
         *)
             printf "${Red}Invalid choice. Exiting.${NC}\n"
