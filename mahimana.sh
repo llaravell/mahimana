@@ -747,6 +747,10 @@ installTXUI() {
 
 ChangeMOTD() {
     printf "${Blue} 🚀 Changing MOTD ... ${NC} \n";
+    command -v neofetch >/dev/null 2>&1 || {
+        echo -e "${DIM}Installing neofetch...${RESET}"
+        apt-get update -qq && apt-get install -y neofetch >/dev/null 2>&1
+    }
     local path="/etc/update-motd.d/00-awesome-motd"
     tee "$path" > /dev/null <<'EOF'
 #!/usr/bin/env bash
@@ -754,11 +758,6 @@ ChangeMOTD() {
 RESET="\e[0m"; BOLD="\e[1m"; DIM="\e[2m"
 GREEN="\e[38;5;82m"; YELLOW="\e[38;5;220m"; RED="\e[38;5;196m"
 CYAN="\e[38;5;51m"; MAGENTA="\e[38;5;213m"
-
-command -v neofetch >/dev/null 2>&1 || {
-echo -e "${DIM}Installing neofetch...${RESET}"
-apt-get update -qq && apt-get install -y neofetch >/dev/null 2>&1
-}
 
 HOST=$(hostname)
 KERNEL=$(uname -r)
