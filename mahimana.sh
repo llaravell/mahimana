@@ -777,10 +777,11 @@ CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
 CPU_CORES=$(nproc)
 
 # IPv4 / IPv6 from landscape
-LANDSCAPE_FILE="/etc/update-motd.d/50-landscape-sysinfo"
-if [[ -r "$LANDSCAPE_FILE" ]]; then
-  IP4=$(grep -oP 'IPv4 address.*?:\s*\K[0-9.]+' "$LANDSCAPE_FILE")
-  IP6=$(grep -oP 'IPv6 address.*?:\s*\K[0-9a-fA-F:]+' "$LANDSCAPE_FILE")
+/usr/bin/landscape-sysinfo > /var/lib/landscape/landscape-sysinfo.cache 2>/dev/null || true
+CACHE_FILE="/var/lib/landscape/landscape-sysinfo.cache"
+if [[ -r "$CACHE_FILE" ]]; then
+  IP4=$(grep -oP 'IPv4 address:\s+\K[0-9.]+' "$CACHE_FILE")
+  IP6=$(grep -oP 'IPv6 address:\s+\K[0-9a-fA-F:]+' "$CACHE_FILE")
 else
   IP4="Not found"
   IP6="Not found"
