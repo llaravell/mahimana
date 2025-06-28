@@ -748,20 +748,8 @@ installTXUI() {
 ChangeMOTD() {
     printf "${Blue} 🚀 Changing MOTD ... ${NC} \n";
 
-    command -v neofetch >/dev/null 2>&1 || {
-        echo -e "${DIM}Installing neofetch...${RESET}"
-        apt-get update -qq && apt-get install -y neofetch >/dev/null 2>&1
-    }
-
-    command -v dig >/dev/null 2>&1 || {
-        echo -e "${DIM}Installing dig (dnsutils)...${RESET}"
-        apt-get install -y dnsutils >/dev/null 2>&1
-    }
-
-    command -v geoiplookup >/dev/null 2>&1 || {
-        echo -e "${DIM}Installing geoip-bin...${RESET}"
-        apt-get install -y geoip-bin >/dev/null 2>&1
-    }
+    apt-get update -qq
+    apt-get install -y neofetch geoip-bin >/dev/null 2>&1
 
     local path="/etc/update-motd.d/00-awesome-motd"
     tee "$path" > /dev/null <<'EOF'
@@ -776,7 +764,6 @@ KERNEL=$(uname -r)
 OS=$(grep "^PRETTY_NAME=" /etc/os-release | cut -d= -f2 | tr -d '"')
 UPTIME=$(uptime -p | sed 's/up //')
 LOAD=$(cut -d " " -f1-3 /proc/loadavg)
-IP_LOCAL=$(hostname -I | awk '{print $1}')
 MEM_USED=$(free -m | awk '/Mem:/ {print $3}')
 MEM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
 DISK_USED=$(df -m / | awk 'NR==2 {print $3}')
@@ -784,20 +771,24 @@ DISK_TOTAL=$(df -m / | awk 'NR==2 {print $2}')
 USERS=$(who | wc -l)
 USER=$(whoami)
 USER_ID=$(id -u)
+
+# CPU usage
 CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
 CPU_CORES=$(nproc)
-CPU_USED_CORES=$(awk -v usage="$CPU_USAGE" -v cores="$CPU_CORES" 'BEGIN { printf "%.1f", usage * cores / 100 }')
 
-# Get public IP (only using dig)
-IP_PUBLIC=$(dig TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
-
-if [[ -z "$IP_PUBLIC" ]]; then
-  IP_PUBLIC="IP Address not found"
+# IPv4 / IPv6 from landscape
+LANDSCAPE_FILE="/etc/update-motd.d/50-landscape-sysinfo"
+if [[ -r "$LANDSCAPE_FILE" ]]; then
+  IP4=$(grep -oP 'IPv4 address.*?:\s*\K[0-9.]+' "$LANDSCAPE_FILE")
+  IP6=$(grep -oP 'IPv6 address.*?:\s*\K[0-9a-fA-F:]+' "$LANDSCAPE_FILE")
+else
+  IP4="Not found"
+  IP6="Not found"
 fi
 
-# Get country info
-if [[ "$IP_PUBLIC" != "IP Address not found" ]]; then
-  COUNTRY_LINE=$(geoiplookup "$IP_PUBLIC")
+# Country detection
+if [[ "$IP4" != "Not found" ]]; then
+  COUNTRY_LINE=$(geoiplookup "$IP4")
   COUNTRY_NAME=$(echo "$COUNTRY_LINE" | cut -d: -f2 | sed 's/^ //')
   COUNTRY_CODE=$(echo "$COUNTRY_LINE" | grep -oP '\((\K[A-Z]+)')
 else
@@ -805,12 +796,19 @@ else
   COUNTRY_CODE="--"
 fi
 
+# Flag emoji
 flag_emoji() {
-  code=$(echo "$1" | tr '[:lower:]' '[:upper:]')
-  for (( i=0; i<${#code}; i++ )); do
-    char=${code:i:1}
-    printf "\U$(printf '%x' $((0x1F1E6 + $(printf '%d' "'$char") - 65)))"
+  local cc=$(echo "$1" | tr '[:lower:]' '[:upper:]')
+  if [[ ! "$cc" =~ ^[A-Z]{2}$ ]]; then
+    echo "🏳️"
+    return
+  fi
+  local flag=""
+  for (( i=0; i<${#cc}; i++ )); do
+    local c=${cc:i:1}
+    flag+=$(printf "\U$(printf '%x' $((0x1F1E6 + $(printf '%d' "'$c") - 65)))")
   done
+  echo "$flag"
 }
 FLAG=$(flag_emoji "$COUNTRY_CODE")
 
@@ -849,8 +847,7 @@ echo -e "${BOLD}${MAGENTA}🎉 Welcome to $COUNTRY_NAME server! 🎉${RESET}"
 echo ""
 
 echo -e "${CYAN}┏━ ${BOLD}System${RESET}"
-echo -e "${CYAN}┃"
-echo -e "${CYAN}┃${RESET} 🖥️  Hostname   : $HOST"
+echo -e "${CYAN}┃${RESET} 🖥️  Hostname    : $HOST"
 echo -e "${CYAN}┃${RESET} 🐧 OS         : $OS"
 echo -e "${CYAN}┃${RESET} 🧠 Kernel     : $KERNEL"
 echo -e "${CYAN}┃${RESET} ⏱️  Uptime     : $UPTIME"
@@ -859,7 +856,7 @@ echo -e "${CYAN}┃${RESET} 👥 Users      : $USERS"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}Resources${RESET}"
-echo -e "${CYAN}┃${RESET} ⚙️  CPU Usage  : $(progress_bar $CPU_USAGE 100)  $(printf "%.0f%%" $CPU_USAGE)   ${CPU_USED_CORES} / ${CPU_CORES} cores"
+echo -e "${CYAN}┃${RESET} 🧮 CPU        : $(progress_bar $CPU_USAGE 100)  ${CPU_USAGE}%% of $CPU_CORES cores"
 echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 💾 Memory     : $(progress_bar $MEM_USED $MEM_TOTAL)  ${MEM_USED}MiB / ${MEM_TOTAL}MiB"
 echo -e "${CYAN}┃"
@@ -867,22 +864,24 @@ echo -e "${CYAN}┃${RESET} 🗄️  Disk       : $(progress_bar $DISK_USED $DIS
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}Network${RESET}"
-echo -e "${CYAN}┃${RESET} 🌐 Local IP   : $IP_LOCAL"
-echo -e "${CYAN}┃${RESET} 🌍 Public IP  : $IP_PUBLIC  ($FLAG $COUNTRY_NAME)"
+echo -e "${CYAN}┃${RESET} 🌐 IPv4       : $IP4"
+echo -e "${CYAN}┃${RESET} 🌐 IPv6       : $IP6"
+echo -e "${CYAN}┃${RESET} 🌍 Country    : $FLAG $COUNTRY_NAME"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}User Info${RESET}"
 echo -e "${CYAN}┃${RESET} 🧑 User       : $USER (UID $USER_ID)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${DIM}MOTD generated with ❤️  by you. ${RESET}"
+echo -e "${DIM}MOTD generated with ❤️  by Taha Shokri. ${RESET}"
 EOF
 
     echo "🧰 Setting permissions..."
     chmod +x "$path"
     chmod -x /etc/update-motd.d/*
     chmod +x "$path"
-    printf "${Green} 🎉 MOTD is changed ${NC} \n";
-    sleep 5;
+
+    printf "${Green} 🎉 MOTD is changed ${NC} \n"
+    sleep 5
     main;
 }
 
