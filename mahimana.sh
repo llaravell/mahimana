@@ -799,17 +799,14 @@ fi
 
 # Flag emoji function
 flag_emoji() {
-  local cc=$1
+  local cc=$(echo "$1" | tr '[:lower:]' '[:upper:]')
   if [[ ! "$cc" =~ ^[A-Z]{2}$ ]]; then
-    echo "🏳️"
+    echo -e "🏳️"
     return
   fi
-  local flag=""
-  for (( i=0; i<${#cc}; i++ )); do
-    local c=${cc:i:1}
-    flag+=$(printf "\U$(printf '%x' $((0x1F1E6 + $(printf '%d' "'$c") - 65)))")
-  done
-  echo "$flag"
+  local first=$((0x1F1E6 + $(printf "%d" "'${cc:0:1}") - 65))
+  local second=$((0x1F1E6 + $(printf "%d" "'${cc:1:1}") - 65))
+  printf "\\U%08x\\U%08x\n" "$first" "$second" | python3 -c 'import sys; print(sys.stdin.read().encode().decode("unicode-escape"))'
 }
 FLAG=$(flag_emoji "$COUNTRY_CODE")
 
