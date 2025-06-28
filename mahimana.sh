@@ -747,10 +747,18 @@ installTXUI() {
 
 ChangeMOTD() {
     printf "${Blue} 🚀 Changing MOTD ... ${NC} \n";
+
+    # نصب ابزارهای لازم
     command -v neofetch >/dev/null 2>&1 || {
         echo -e "${DIM}Installing neofetch...${RESET}"
         apt-get update -qq && apt-get install -y neofetch >/dev/null 2>&1
     }
+
+    command -v geoiplookup >/dev/null 2>&1 || {
+        echo -e "${DIM}Installing geoiplookup...${RESET}"
+        apt-get install -y geoip-bin >/dev/null 2>&1
+    }
+
     local path="/etc/update-motd.d/00-awesome-motd"
     tee "$path" > /dev/null <<'EOF'
 #!/usr/bin/env bash
@@ -773,12 +781,15 @@ USERS=$(who | wc -l)
 USER=$(whoami)
 USER_ID=$(id -u)
 
-# Get public IP and country info with emoji flag
-IP_INFO=$(curl -s https://ipapi.co/json/)
-IP_PUBLIC=$(echo "$IP_INFO" | grep -oP '"ip":\s*"\K[^"]+')
-COUNTRY_CODE=$(echo "$IP_INFO" | grep -oP '"country":\s*"\K[^"]+')
-COUNTRY_NAME=$(echo "$IP_INFO" | grep -oP '"country_name":\s*"\K[^"]+')
+# Get public IP (needs internet only for this part)
+IP_PUBLIC=$(curl -s https://ifconfig.me)
 
+# Get country info via local GeoIP database
+COUNTRY_LINE=$(geoiplookup "$IP_PUBLIC")
+COUNTRY_NAME=$(echo "$COUNTRY_LINE" | cut -d: -f2 | sed 's/^ //')
+COUNTRY_CODE=$(echo "$COUNTRY_LINE" | grep -oP '\((\K[A-Z]+)')
+
+# Convert country code to emoji flag
 flag_emoji() {
   code=$(echo "$1" | tr '[:lower:]' '[:upper:]')
   for (( i=0; i<${#code}; i++ )); do
