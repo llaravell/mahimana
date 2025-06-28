@@ -746,25 +746,24 @@ installTXUI() {
 }
 
 ChangeMOTD() {
-    printf "${Blue} 🚀 Changing MOTD ... ${NC} \n"
+    printf "${Blue} 🚀 Changing MOTD ... ${NC} \n";
 
-    local path="/etc/update-motd.d/00-awesome-motd"
-
-    # حذف نسخه قبلی
-    [ -f "$path" ] && sudo rm -f "$path"
-
-    # نصب ابزارهای لازم
     command -v neofetch >/dev/null 2>&1 || {
         echo -e "${DIM}Installing neofetch...${RESET}"
         apt-get update -qq && apt-get install -y neofetch >/dev/null 2>&1
     }
 
+    command -v dig >/dev/null 2>&1 || {
+        echo -e "${DIM}Installing dig (dnsutils)...${RESET}"
+        apt-get install -y dnsutils >/dev/null 2>&1
+    }
+
     command -v geoiplookup >/dev/null 2>&1 || {
-        echo -e "${DIM}Installing geoiplookup...${RESET}"
+        echo -e "${DIM}Installing geoip-bin...${RESET}"
         apt-get install -y geoip-bin >/dev/null 2>&1
     }
 
-    # نوشتن MOTD
+    local path="/etc/update-motd.d/00-awesome-motd"
     tee "$path" > /dev/null <<'EOF'
 #!/usr/bin/env bash
 
@@ -782,16 +781,24 @@ MEM_USED=$(free -m | awk '/Mem:/ {print $3}')
 MEM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
 DISK_USED=$(df -m / | awk 'NR==2 {print $3}')
 DISK_TOTAL=$(df -m / | awk 'NR==2 {print $2}')
-CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
 USERS=$(who | wc -l)
 USER=$(whoami)
 USER_ID=$(id -u)
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
+CPU_CORES=$(nproc)
+CPU_USED_CORES=$(awk -v usage="$CPU_USAGE" -v cores="$CPU_CORES" 'BEGIN { printf "%.1f", usage * cores / 100 }')
 
-# گرفتن آی‌پی عمومی واقعی
+# Get public IP
 IP_PUBLIC=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}' | head -n1)
+if [[ -z "$IP_PUBLIC" ]]; then
+  IP_PUBLIC=$(dig TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
+fi
+if [[ -z "$IP_PUBLIC" ]]; then
+  IP_PUBLIC="IP Address not found"
+fi
 
-# تشخیص کشور با geoiplookup
-if [[ -n "$IP_PUBLIC" ]]; then
+# Get country info
+if [[ "$IP_PUBLIC" != "IP Address not found" ]]; then
   COUNTRY_LINE=$(geoiplookup "$IP_PUBLIC")
   COUNTRY_NAME=$(echo "$COUNTRY_LINE" | cut -d: -f2 | sed 's/^ //')
   COUNTRY_CODE=$(echo "$COUNTRY_LINE" | grep -oP '\((\K[A-Z]+)')
@@ -800,7 +807,6 @@ else
   COUNTRY_CODE="--"
 fi
 
-# ساخت پرچم ایموجی
 flag_emoji() {
   code=$(echo "$1" | tr '[:lower:]' '[:upper:]')
   for (( i=0; i<${#code}; i++ )); do
@@ -845,6 +851,7 @@ echo -e "${BOLD}${MAGENTA}🎉 Welcome to $COUNTRY_NAME server! 🎉${RESET}"
 echo ""
 
 echo -e "${CYAN}┏━ ${BOLD}System${RESET}"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🖥️  Hostname   : $HOST"
 echo -e "${CYAN}┃${RESET} 🐧 OS         : $OS"
 echo -e "${CYAN}┃${RESET} 🧠 Kernel     : $KERNEL"
@@ -854,11 +861,11 @@ echo -e "${CYAN}┃${RESET} 👥 Users      : $USERS"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}Resources${RESET}"
+echo -e "${CYAN}┃${RESET} ⚙️  CPU Usage  : $(progress_bar $CPU_USAGE 100)  $(printf "%.0f%%" $CPU_USAGE)   ${CPU_USED_CORES} / ${CPU_CORES} cores"
+echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 💾 Memory     : $(progress_bar $MEM_USED $MEM_TOTAL)  ${MEM_USED}MiB / ${MEM_TOTAL}MiB"
 echo -e "${CYAN}┃"
 echo -e "${CYAN}┃${RESET} 🗄️  Disk       : $(progress_bar $DISK_USED $DISK_TOTAL)  ${DISK_USED}MiB / ${DISK_TOTAL}MiB"
-echo -e "${CYAN}┃"
-echo -e "${CYAN}┃${RESET} ⚙️  CPU Usage  : $(progress_bar $CPU_USAGE 100)  $(printf "%.0f%%" $CPU_USAGE)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}Network${RESET}"
@@ -872,15 +879,15 @@ echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━�
 echo -e "${DIM}MOTD generated with ❤️  by you. ${RESET}"
 EOF
 
-    # اعمال مجوز اجرا
     echo "🧰 Setting permissions..."
-    sudo chmod +x "$path"
-    sudo chmod -x /etc/update-motd.d/*
-    sudo chmod +x "$path"
-    printf "${Green} 🎉 MOTD is changed ${NC} \n"
-    sleep 2
-    main
+    chmod +x "$path"
+    chmod -x /etc/update-motd.d/*
+    chmod +x "$path"
+    printf "${Green} 🎉 MOTD is changed ${NC} \n";
+    sleep 5;
+    main;
 }
+
 
 # Main
 main() {
