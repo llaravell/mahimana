@@ -772,7 +772,7 @@ DISK_USED=$(df -m / | awk 'NR==2 {print $3}')
 DISK_TOTAL=$(df -m / | awk 'NR==2 {print $2}')
 USERS=$(who | wc -l)
 USER=$(whoami)
-UID=$(id -u)
+USER_ID=$(id -u)
 
 IP_INFO=$(curl -s https://api.myip.com)
 IP_PUBLIC=$(echo "$IP_INFO" | grep -oP '"ip":\s*"\K[^"]+')
@@ -827,7 +827,7 @@ echo -e "${CYAN}┃${RESET} 🌍 Public IP  : $IP_PUBLIC  ($FLAG $COUNTRY_NAME)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}User Info${RESET}"
-echo -e "${CYAN}┃${RESET} 🧑 User       : $USER (UID $UID)"
+echo -e "${CYAN}┃${RESET} 🧑 User       : $USER (UID $USER_ID)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "${DIM}MOTD generated with ❤️  by you. ${RESET}"
 EOF
