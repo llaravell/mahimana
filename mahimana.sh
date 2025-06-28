@@ -774,11 +774,20 @@ USERS=$(who | wc -l)
 USER=$(whoami)
 USER_ID=$(id -u)
 
-IP_INFO=$(curl -s https://api.myip.com)
+# Get public IP and country info with emoji flag
+IP_INFO=$(curl -s https://ipapi.co/json/)
 IP_PUBLIC=$(echo "$IP_INFO" | grep -oP '"ip":\s*"\K[^"]+')
-COUNTRY_CODE=$(echo "$IP_INFO" | grep -oP '"cc":\s*"\K[^"]+')
-COUNTRY_NAME=$(echo "$IP_INFO" | grep -oP '"country":\s*"\K[^"]+')
-FLAG=$(curl -s "https://flagcdn.com/${COUNTRY_CODE,,}.txt" 2>/dev/null | head -n 1 || echo "$COUNTRY_CODE")
+COUNTRY_CODE=$(echo "$IP_INFO" | grep -oP '"country":\s*"\K[^"]+')
+COUNTRY_NAME=$(echo "$IP_INFO" | grep -oP '"country_name":\s*"\K[^"]+')
+
+flag_emoji() {
+  code=$(echo "$1" | tr '[:lower:]' '[:upper:]')
+  for (( i=0; i<${#code}; i++ )); do
+    char=${code:i:1}
+    printf "\U$(printf '%x' $((0x1F1E6 + $(printf '%d' "'$char") - 65)))"
+  done
+}
+FLAG=$(flag_emoji "$COUNTRY_CODE")
 
 progress_bar() {
 local used=$1
@@ -799,7 +808,7 @@ fi
 local bar="${COLOR}"; for ((i=0;i<fill;i++)); do bar+="█"; done
 bar+="${DIM}"; for ((i=0;i<empty;i++)); do bar+="░"; done
 bar+="${RESET}"
-printf "$bar  $(awk "BEGIN {printf \"%.0f\", $ratio * 100}")%%"
+printf "$bar  $(awk \"BEGIN {printf \"%.0f\", $ratio * 100}\")%%"
 }
 
 clear
@@ -818,7 +827,6 @@ echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━�
 
 echo -e "${CYAN}┏━ ${BOLD}Resources${RESET}"
 echo -e "${CYAN}┃${RESET} 💾 Memory     : $(progress_bar $MEM_USED $MEM_TOTAL)  ${MEM_USED}MiB / ${MEM_TOTAL}MiB"
-echo -e "${CYAN}┃
 echo -e "${CYAN}┃${RESET} 🗄️  Disk       : $(progress_bar $DISK_USED $DISK_TOTAL)  ${DISK_USED}MiB / ${DISK_TOTAL}MiB"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
