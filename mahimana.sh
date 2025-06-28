@@ -780,8 +780,8 @@ CPU_CORES=$(nproc)
 /usr/bin/landscape-sysinfo > /var/lib/landscape/landscape-sysinfo.cache 2>/dev/null || true
 CACHE_FILE="/var/lib/landscape/landscape-sysinfo.cache"
 if [[ -r "$CACHE_FILE" ]]; then
-  IP4=$(grep -oP 'IPv4 address:\s+\K[0-9.]+' "$CACHE_FILE")
-  IP6=$(grep -oP 'IPv6 address:\s+\K[0-9a-fA-F:]+' "$CACHE_FILE")
+  IP4=$(grep -m1 'IPv4 address for' "$CACHE_FILE" | awk '{print $5}')
+  IP6=$(grep -m1 'IPv6 address for' "$CACHE_FILE" | awk '{print $5}')
 else
   IP4="Not found"
   IP6="Not found"
