@@ -113,21 +113,30 @@ updateAndUpgrade() {
 
 # Find SSH port and return
 FindSSHPort() {
-    # Check if ssh is installed
-    if command -v ssh &> /dev/null; then
-        # Check if sshd_config file not exists
-        if [ ! -f /etc/ssh/sshd_config ]; then
-            echo "SSH is not installed";
-            exit 1;
-        fi
-        # Find port in sshd_config
-        port=$(grep "#\?Port" /etc/ssh/sshd_config | head -1 | awk '{print $2}')
-        echo "Current port is $port";
-        exit 0;
-    else
-        echo "SSH is not installed";
-        exit 1;
+    # Check if sshd_config file exists
+    if [ ! -f /etc/ssh/sshd_config ]; then
+        echo "SSH port not found in (/etc/ssh/sshd_config)."
+        return 1
     fi
+
+    # Find port in sshd_config using a more specific pattern
+    # -E for extended regex
+    # ^\s* - line starts with optional whitespace
+    # #?        - optional '#' for commented out ports
+    # \s*Port\s+ - the word Port surrounded by whitespace
+    local port
+    port=$(grep -E "^\s*#?\s*Port\s+" /etc/ssh/sshd_config | head -n 1 | awk '{print $2}')
+
+    # Validate that the found port is a number
+    if [[ "$port" =~ ^[0-9]+$ ]]; then
+        echo "Current Port SSH: $port"
+    else
+        echo "SSH port not found in (/etc/ssh/sshd_config)."
+        # Assuming 22 if not found
+        echo "Current Port SSH: 22"
+        return 1
+    fi
+    return 0
 }
 
 # Change SSh port
