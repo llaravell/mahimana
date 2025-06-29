@@ -132,42 +132,238 @@ FindSSHPort() {
 
 # Change SSh port
 changeSSHPort() {
-    {
-        # Check ssh and sshd is installed
-        dpkg -s ssh > /dev/null 2>&1 || {
-            printf "${Blue} 🚀 Starting Install SSH ... ${NC} \n";
-            apt-get install -y ssh > /dev/null 2>&1 & spinner;
-            printf "${Green} 🎉 Install SSH is complete ${NC} \n";
-            }
-        read -p "Enter the new SSH port: " new_port
-        printf "${Blue} 🚀 Starting Change SSH port ... ${NC} \n";
-        # Find old port in sshd_config
-        old_port=$(grep "#\?Port" /etc/ssh/sshd_config | head -1 | awk '{print $2}')
-        # Replace old port with new port in sshd_config
-        sed -i -E "s/^#?Port\s+[0-9]+$/Port ${new_port}/" /etc/ssh/sshd_config
-        printf "${Green} 🎉 Change SSH port is complete ${NC} \n";
-        service ssh restart > /dev/null 2>&1 & spinner;
-        printf "${Green} 🎉 SSH service is restarted ${NC} \n";
-        printf "${Green} 🎉 SSH port is changed to $new_port ${NC} \n";
-        # check if ufw is installed
-        if command -v ufw &> /dev/null; then
-            printf "${Blue} 🚀 Starting Close Firewall for old port... ${NC} \n";
-            ufw deny $old_port > /dev/null 2>&1 & spinner;
-            printf "${Green} 🎉 Firewall is closed sucessfully ${NC} \n";
-            printf "${Blue} 🚀 Starting Open Firewall ... ${NC} \n";
-            ufw allow $new_port > /dev/null 2>&1 & spinner;
-            printf "${Green} 🎉 Firewall is opened sucessfully ${NC} \n";
+    # --- بررسی اجرای اسکریپت با دسترسی روت ---
+    if [[ $EUID -ne 0 ]]; then
+       printf "${RED}❌ This script must be run as root.${NC}\n"
+       exit 1
+    fi
+
+    # --- نصب SSH در صورت نیاز ---
+    if ! dpkg -s ssh > /dev/null 2>&1; then
+        printf "${Blue}🚀 Installing SSH...${NC}\n"
+        apt-get update > /dev/null 2>&1
+        apt-get install -y ssh > /dev/null 2>&1
+        printf "${Green}🎉 SSH installation complete.${NC}\n"
+    fi
+
+    # --- دریافت و اعتبارسنجی پورت جدید ---
+    local new_port
+    while true; do
+        read -p "Enter the new SSH port (1-65535): " new_port
+        if [[ "$new_port" =~ ^[0-9]+$ && "$new_port" -ge 1 && "$new_port" -le 65535 ]]; then
+            break
+        else
+            printf "${RED}❌ Invalid port. Please enter a number between 1 and 65535.${NC}\n"
         fi
-        # wait 5 secound
-        sleep 5;
-        main;
+    done
 
-    } || {
-        printf "${RED}❌ An error occurred while changing SSH port ${NC}\n";
-        exit 1;
-    }
+    printf "${Blue}🚀 Applying SSH configuration...${NC}\n"
+
+    # --- پیدا کردن پورت قدیمی قبل از بازنویسی فایل ---
+    local old_port
+    old_port=$(grep -iE "^\s*#?\s*Port\s+" /etc/ssh/sshd_config | awk '{print $2}' | head -n 1)
+
+    # --- بازنویسی کامل فایل sshd_config با تمپلیت جدید ---
+    cat <<'EOF' > /etc/ssh/sshd_config
+# This is the sshd server system-wide configuration file.  See
+# sshd_config(5) for more information.
+
+# This sshd was compiled with PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+
+# The strategy used for options in the default sshd_config shipped with
+# OpenSSH is to specify options with their default value where
+# possible, but leave them commented.  Uncommented options override the
+# default value.
+
+# Include /etc/ssh/sshd_config.d/*.conf
+
+# When systemd socket activation is used (the default), the socket
+# configuration must be re-generated after changing Port, AddressFamily, or
+# ListenAddress.
+#
+# For changes to take effect, run:
+#
+#   systemctl daemon-reload
+#   systemctl restart ssh.socket
+#
+Port 22
+#AddressFamily any
+#ListenAddress 0.0.0.0
+#ListenAddress ::
+
+#HostKey /etc/ssh/ssh_host_rsa_key
+#HostKey /etc/ssh/ssh_host_ecdsa_key
+#HostKey /etc/ssh/ssh_host_ed25519_key
+
+# Ciphers and keying
+#RekeyLimit default none
+
+# Logging
+#SyslogFacility AUTH
+#LogLevel INFO
+
+# Authentication:
+
+#LoginGraceTime 2m
+PermitRootLogin yes
+#StrictModes yes
+MaxAuthTries 3
+MaxSessions 1
+
+PubkeyAuthentication yes
+
+# Expect .ssh/authorized_keys2 to be disregarded by default in future.
+AuthorizedKeysFile      .ssh/authorized_keys .ssh/authorized_keys2
+
+#AuthorizedPrincipalsFile none
+
+#AuthorizedKeysCommand none
+#AuthorizedKeysCommandUser nobody
+
+# For this to work you will also need host keys in /etc/ssh/ssh_known_hosts
+#HostbasedAuthentication no
+# Change to yes if you don't trust ~/.ssh/known_hosts for
+# HostbasedAuthentication
+#IgnoreUserKnownHosts no
+# Don't read the user's ~/.rhosts and ~/.shosts files
+#IgnoreRhosts yes
+
+# To disable tunneled clear text passwords, change to no here!
+PasswordAuthentication no
+#PermitEmptyPasswords no
+
+# Change to yes to enable challenge-response passwords (beware issues with
+# some PAM modules and threads)
+KbdInteractiveAuthentication no
+
+# Kerberos options
+#KerberosAuthentication no
+#KerberosOrLocalPasswd yes
+#KerberosTicketCleanup yes
+#KerberosGetAFSToken no
+
+# GSSAPI options
+#GSSAPIAuthentication no
+#GSSAPICleanupCredentials yes
+#GSSAPIStrictAcceptorCheck yes
+#GSSAPIKeyExchange no
+
+# Set this to 'yes' to enable PAM authentication, account processing,
+# and session processing. If this is enabled, PAM authentication will
+# be allowed through the KbdInteractiveAuthentication and
+# PasswordAuthentication.  Depending on your PAM configuration,
+# PAM authentication via KbdInteractiveAuthentication may bypass
+# the setting of "PermitRootLogin prohibit-password".
+# If you just want the PAM account and session checks to run without
+# PAM authentication, then enable this but set PasswordAuthentication
+# and KbdInteractiveAuthentication to 'no'.
+UsePAM yes
+
+#AllowAgentForwarding yes
+#AllowTcpForwarding yes
+#GatewayPorts no
+X11Forwarding yes
+#X11DisplayOffset 10
+#X11UseLocalhost yes
+#PermitTTY yes
+PrintMotd no
+#PrintLastLog yes
+#TCPKeepAlive yes
+#PermitUserEnvironment no
+#Compression delayed
+#ClientAliveInterval 0
+#ClientAliveCountMax 3
+#UseDNS no
+#PidFile /run/sshd.pid
+#MaxStartups 10:30:100
+#PermitTunnel no
+#ChrootDirectory none
+#VersionAddendum none
+
+# no default banner path
+#Banner none
+
+# Allow client to pass locale environment variables
+AcceptEnv LANG LC_*
+
+# override default of no subsystems
+Subsystem       sftp    /usr/lib/openssh/sftp-server
+
+# Example of overriding settings on a per-user basis
+#Match User anoncvs
+#       X11Forwarding no
+#       AllowTcpForwarding no
+#       PermitTTY no
+#       ForceCommand cvs server
+EOF
+
+    # --- جایگزینی پورت پیش‌فرض در تمپلیت با پورت جدید ---
+    sed -i "s/^Port 22$/Port ${new_port}/" /etc/ssh/sshd_config
+    printf "${Green}🎉 SSH configuration file has been updated.${NC}\n"
+
+    # ====================================================================
+    # ---  شروع بخش جدید: ساخت و تنظیم کلید SSH ---
+    # ====================================================================
+    printf "${Blue}🚀 Generating a new SSH key pair...${NC}\n"
+
+    # --- ساخت پوشه .ssh در صورت عدم وجود و تنظیم دسترسی ---
+    mkdir -p ~/.ssh
+    chmod 700 ~/.ssh
+
+    # --- ساخت کلید به صورت غیرتعاملی (بدون پسورد) و با перезапись کلید قبلی ---
+    ssh-keygen -q -t ed25519 -N "" -f ~/.ssh/id_ed25519 <<<y >/dev/null 2>&1
+
+    # --- اضافه کردن کلید عمومی به لیست کلیدهای مجاز ---
+    cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+    printf "${Green}🎉 Public key added to authorized_keys.${NC}\n"
+
+    # --- تنظیم دسترسی صحیح برای فایل کلیدهای مجاز ---
+    chmod 600 ~/.ssh/authorized_keys
+    printf "${Green}🎉 Permissions set for authorized_keys.${NC}\n"
+    # ====================================================================
+    # ---  پایان بخش ساخت کلید SSH ---
+    # ====================================================================
+
+
+    # --- ری‌استارت کردن سرویس SSH ---
+    printf "${Blue}🚀 Restarting SSH service...${NC}\n"
+    if systemctl restart sshd; then
+        printf "${Green}🎉 SSH service restarted successfully.${NC}\n"
+        printf "${Green}🎉 SSH port is now ${new_port}.${NC}\n"
+    else
+        printf "${RED}❌ Failed to restart SSH service. Please check configuration.${NC}\n"
+        exit 1
+    fi
+
+    # --- تنظیم فایروال UFW ---
+    if command -v ufw &> /dev/null; then
+        printf "${Blue}🚀 Updating firewall rules...${NC}\n"
+        if [[ -n "$old_port" && "$old_port" != "$new_port" ]]; then
+            ufw deny "$old_port"/tcp > /dev/null 2>&1
+            printf "${Green}✔️ Old port ${old_port} denied in firewall.${NC}\n"
+        fi
+        ufw allow "$new_port"/tcp > /dev/null 2>&1
+        ufw reload > /dev/null 2>&1
+        printf "${Green}🎉 New port ${new_port} allowed in firewall.${NC}\n"
+    fi
+
+    # --- نمایش کلیدها به کاربر ---
+    printf "\n"
+    printf "${BLUE}==================== SSH KEY DETAILS ====================${NC}\n"
+    printf "\n"
+    printf "${GREEN}✅ Here is your PUBLIC key:${NC}\n"
+    cat ~/.ssh/id_ed25519.pub
+    printf "\n"
+    printf "${RED}✅ Here is your PRIVATE key (Keep it secret!):${NC}\n"
+    cat ~/.ssh/id_ed25519
+    printf "\n"
+    printf "${BLUE}========================================================${NC}\n"
+    printf "\n"
+
+    # --- انتظار برای تایید کاربر قبل از بازگشت به منو ---
+    read -p "Press [Enter] to return to the main menu..."
+    # اینجا می‌توانید تابع main; خود را قرار دهید اگر نیاز است
 }
-
 # Bind a domain to server by bind9
 BindDomain() {
         # If Bind9 not installed then install
