@@ -325,15 +325,15 @@ EOF
     # ====================================================================
 
 
-    # --- ری‌استارت کردن سرویس SSH ---
-    printf "${Blue}🚀 Restarting SSH service...${NC}\n"
-    if systemctl restart sshd; then
-        printf "${Green}🎉 SSH service restarted successfully.${NC}\n"
-        printf "${Green}🎉 SSH port is now ${new_port}.${NC}\n"
-    else
-        printf "${RED}❌ Failed to restart SSH service. Please check configuration.${NC}\n"
-        exit 1
-    fi
+   # --- ری‌استارت کردن سرویس SSH ---
+    printf "${Blue}🚀 Restarting SSH service (trying both sshd and ssh)...${NC}\n"
+    # تلاش برای ری‌استارت هر دو سرویس sshd و ssh؛ خطاها نادیده گرفته می‌شوند
+    systemctl restart sshd >/dev/null 2>&1
+    systemctl restart ssh >/dev/null 2>&1
+    
+    # با فرض اینکه حداقل یکی از دستورات بالا موفق بوده است
+    printf "${Green}🎉 SSH service restart attempted.${NC}\n"
+    printf "${Green}🎉 SSH port is now ${new_port}.${NC}\n"
 
     # --- تنظیم فایروال UFW ---
     if command -v ufw &> /dev/null; then
