@@ -1110,7 +1110,7 @@ echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━�
 echo -e "${CYAN}┏━ ${BOLD}Network${RESET}"
 echo -e "${CYAN}┃${RESET} 🌐 IPv4       : $IP4"
 echo -e "${CYAN}┃${RESET} 🌐 IPv6       : $IP6"
-echo -e "${CYAN}┃${RESET} 🌍 Country    : $FLAG $COUNTRY_NAME"
+echo -e "${CYAN}┃${RESET} 🌍 Country    : [$COUNTRY_CODE] $COUNTRY_NAME"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}User Info${RESET}"
