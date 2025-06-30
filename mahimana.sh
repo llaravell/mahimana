@@ -372,6 +372,7 @@ EOF
     # --- انتظار برای تایید کاربر قبل از بازگشت به منو ---
     read -p "Press [Enter] to return to the main menu..."
     # اینجا می‌توانید تابع main; خود را قرار دهید اگر نیاز است
+    main
 }
 # Bind a domain to server by bind9
 BindDomain() {
@@ -951,84 +952,45 @@ installTXUI() {
 }
 
 ChangeMOTD() {
-    printf "${Blue} 🚀 Changing MOTD ... ${NC} \n";
+    printf "${Blue}🚀 Changing MOTD ...${NC}\n"
 
+    # Ensure required packages are installed
+    printf "🧰 Updating package list and installing dependencies (neofetch, geoip-bin)...\n"
     apt-get update -qq
     apt-get install -y neofetch geoip-bin >/dev/null 2>&1
 
+    # Define the path for the new MOTD script
     local path="/etc/update-motd.d/00-awesome-motd"
+
+    # Use a Heredoc to write the script file.
+    # Quoting 'EOF' is important to prevent variable expansion now.
+    # Variables should be expanded when the script is RUN, not when it is WRITTEN.
     tee "$path" > /dev/null <<'EOF'
 #!/usr/bin/env bash
 
+# --- Static Color Definitions ---
 RESET="\e[0m"; BOLD="\e[1m"; DIM="\e[2m"
 GREEN="\e[38;5;82m"; YELLOW="\e[38;5;220m"; RED="\e[38;5;196m"
 CYAN="\e[38;5;51m"; MAGENTA="\e[38;5;213m"
 
-HOST=$(hostname)
-KERNEL=$(uname -r)
-OS=$(grep "^PRETTY_NAME=" /etc/os-release | cut -d= -f2 | tr -d '"')
-UPTIME=$(uptime -p | sed 's/up //')
-LOAD=$(cut -d " " -f1-3 /proc/loadavg)
-MEM_USED=$(free -m | awk '/Mem:/ {print $3}')
-MEM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
-DISK_USED=$(df -m / | awk 'NR==2 {print $3}')
-DISK_TOTAL=$(df -m / | awk 'NR==2 {print $2}')
-USERS=$(who | wc -l)
-USER=$(whoami)
-USER_ID=$(id -u)
+# --- Function Definitions ---
 
-# CPU usage
-CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
-CPU_CORES=$(nproc)
-
-# IPv4 / IPv6 from landscape
-/usr/bin/landscape-sysinfo > /var/lib/landscape/landscape-sysinfo.cache 2>/dev/null || true
-CACHE_FILE="/var/lib/landscape/landscape-sysinfo.cache"
-if [[ -r "$CACHE_FILE" ]]; then
-  IP4=$(grep -m1 'IPv4 address for' "$CACHE_FILE" | awk '{print $5}')
-  IP6=$(grep -m1 'IPv6 address for' "$CACHE_FILE" | awk '{print $5}')
-else
-  IP4="Not found"
-  IP6="Not found"
-fi
-
-# Country detection
-if [[ "$IP4" != "Not found" ]]; then
-  COUNTRY_LINE=$(geoiplookup "$IP4")
-  COUNTRY_NAME=$(echo "$COUNTRY_LINE" | cut -d: -f2 | sed 's/^ *//')
-  COUNTRY_CODE=$(echo "$COUNTRY_LINE" | awk -F': ' '{print $2}' | cut -d',' -f1 | tr -d ' ' | tr '[:lower:]' '[:upper:]')
-else
-  COUNTRY_NAME="Unknown"
-  COUNTRY_CODE="--"
-fi
-
-# Flag emoji function
-flag_emoji() {
-  local cc=$(echo "$1" | tr '[:lower:]' '[:upper:]')
-  if [[ ! "$cc" =~ ^[A-Z]{2}$ ]]; then
-    echo "🏳️"
-    return
-  fi
-  local first_char=${cc:0:1}
-  local second_char=${cc:1:1}
-
-  local first_code=$((0x1F1E6 + $(printf '%d' "'$first_char") - 65))
-  local second_code=$((0x1F1E6 + $(printf '%d' "'$second_char") - 65))
-
-  printf "$(printf "\\U%08x\\U%08x" "$first_code" "$second_code" | iconv -f UTF-32BE -t UTF-8)"
-}
-FLAG=$(flag_emoji "$COUNTRY_CODE")
-
+# Renders a progress bar with color coding based on percentage
 progress_bar() {
   local used=$1
   local total=$2
+  # Prevent division by zero if total is 0
+  if (( total == 0 )); then total=1; fi
+
   local width=24
   local ratio fill empty percent COLOR bar
 
-  ratio=$(awk -v u="$used" -v t="$total" 'BEGIN { if (t > 0) printf "%.2f", u / t; else print 0 }')
+  # Use awk for floating-point arithmetic
+  ratio=$(awk -v u="$used" -v t="$total" 'BEGIN { printf "%.2f", u / t }')
   fill=$(awk -v r="$ratio" -v w="$width" 'BEGIN { printf "%d", r * w }')
   empty=$((width - fill))
 
+  # Determine color based on usage ratio
   if (( $(echo "$ratio < 0.5" | bc -l) )); then
     COLOR=$GREEN
   elif (( $(echo "$ratio < 0.8" | bc -l) )); then
@@ -1037,6 +999,7 @@ progress_bar() {
     COLOR=$RED
   fi
 
+  # Build the bar string
   bar="${COLOR}"
   for ((i = 0; i < fill; i++)); do bar+="█"; done
   bar+="${DIM}"
@@ -1047,10 +1010,84 @@ progress_bar() {
   printf "%s  %s%%" "$bar" "$percent"
 }
 
+# Converts a 2-letter country code to a flag emoji
+flag_emoji() {
+  local cc
+  cc=$(echo "$1" | tr '[:lower:]' '[:upper:]')
+  if [[ ! "$cc" =~ ^[A-Z]{2}$ ]]; then
+    echo "🏳️" # Default flag
+    return
+  fi
+  local first_char=${cc:0:1}
+  local second_char=${cc:1:1}
+  local first_code=$((0x1F1E6 + $(printf '%d' "'$first_char") - 65))
+  local second_code=$((0x1F1E6 + $(printf '%d' "'$second_char") - 65))
+  printf "$(printf "\\U%08x\\U%08x" "$first_code" "$second_code")"
+}
+
+
+# --- Data Collection ---
+
+# System Information
+HOST=$(hostname)
+KERNEL=$(uname -r)
+OS=$(grep "^PRETTY_NAME=" /etc/os-release | cut -d= -f2 | tr -d '"')
+UPTIME=$(uptime -p | sed 's/up //')
+LOAD=$(cut -d " " -f1-3 /proc/loadavg)
+
+# Resource Usage
+MEM_USED=$(free -m | awk '/Mem:/ {print $3}')
+MEM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
+DISK_USED=$(df -h / | awk 'NR==2 {print $3}' | sed 's/G//')
+DISK_TOTAL=$(df -h / | awk 'NR==2 {print $2}' | sed 's/G//')
+DISK_USED_B=$(df -m / | awk 'NR==2 {print $3}')
+DISK_TOTAL_B=$(df -m / | awk 'NR==2 {print $2}')
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{printf "%.0f", 100 - $8}')
+CPU_CORES=$(nproc)
+
+# User Information
+USERS=$(who | wc -l)
+USER=$(whoami)
+USER_ID=$(id -u)
+
+# Network Information
+IP4="Not Found"
+IP6="Not Found"
+# First, check if landscape-sysinfo command exists
+if command -v landscape-sysinfo &> /dev/null; then
+    # Run the command and cache its output
+    /usr/bin/landscape-sysinfo > /var/lib/landscape/landscape-sysinfo.cache 2>/dev/null || true
+    CACHE_FILE="/var/lib/landscape/landscape-sysinfo.cache"
+
+    if [[ -r "$CACHE_FILE" ]]; then
+      # *** FIX: Use $NF to get the LAST field, which is the IP address ***
+      IP4=$(grep -m1 'IPv4 address for' "$CACHE_FILE" | awk '{print $NF}')
+      IP6=$(grep -m1 'IPv6 address for' "$CACHE_FILE" | awk '{print $NF}')
+      # If grep fails, variables will be empty. Set a default value.
+      [[ -z "$IP4" ]] && IP4="Not Found"
+      [[ -z "$IP6" ]] && IP6="Not Found"
+    fi
+fi
+
+# Country Detection (only if IP4 was found and geoiplookup exists)
+COUNTRY_NAME="Unknown"
+COUNTRY_CODE="--"
+if [[ "$IP4" != "Not Found" ]] && command -v geoiplookup &> /dev/null; then
+  # geoiplookup might return an error for private IPs, so we handle it
+  if COUNTRY_LINE=$(geoiplookup "$IP4"); then
+    COUNTRY_NAME=$(echo "$COUNTRY_LINE" | cut -d: -f2 | sed 's/^ *//')
+    COUNTRY_CODE=$(echo "$COUNTRY_LINE" | awk -F': ' '{print $2}' | cut -d',' -f1)
+  fi
+fi
+FLAG=$(flag_emoji "$COUNTRY_CODE")
+
+
+# --- Display ---
+
 clear
 neofetch --ascii_distro auto --color_blocks off --disable packages
 echo ""
-echo -e "${BOLD}${MAGENTA}🎉 Welcome to $COUNTRY_NAME server! 🎉${RESET}"
+echo -e "${BOLD}${MAGENTA}🎉 Welcome to the server in $COUNTRY_NAME! 🎉${RESET}"
 echo ""
 
 echo -e "${CYAN}┏━ ${BOLD}System${RESET}"
@@ -1063,11 +1100,11 @@ echo -e "${CYAN}┃${RESET} 👥 Users      : $USERS"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}Resources${RESET}"
-echo -e "${CYAN}┃${RESET} 🧮 CPU        : $(progress_bar $CPU_USAGE 100)  ${CPU_USAGE}%% of $CPU_CORES cores"
+echo -e "${CYAN}┃${RESET} 🧮 CPU        : $(progress_bar "$CPU_USAGE" 100)  ${CPU_USAGE}%% of $CPU_CORES cores"
 echo -e "${CYAN}┃"
-echo -e "${CYAN}┃${RESET} 💾 Memory     : $(progress_bar $MEM_USED $MEM_TOTAL)  ${MEM_USED}MiB / ${MEM_TOTAL}MiB"
+echo -e "${CYAN}┃${RESET} 💾 Memory     : $(progress_bar "$MEM_USED" "$MEM_TOTAL")  ${MEM_USED}MiB / ${MEM_TOTAL}MiB"
 echo -e "${CYAN}┃"
-echo -e "${CYAN}┃${RESET} 🗄️  Disk       : $(progress_bar $DISK_USED $DISK_TOTAL)  ${DISK_USED}MiB / ${DISK_TOTAL}MiB"
+echo -e "${CYAN}┃${RESET} 🗄️  Disk       : $(progress_bar "$DISK_USED_B" "$DISK_TOTAL_B")  ${DISK_USED}GiB / ${DISK_TOTAL}GiB"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo -e "${CYAN}┏━ ${BOLD}Network${RESET}"
@@ -1080,16 +1117,21 @@ echo -e "${CYAN}┏━ ${BOLD}User Info${RESET}"
 echo -e "${CYAN}┃${RESET} 🧑 User       : $USER (UID $USER_ID)"
 echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "${DIM}MOTD generated with ❤️  by Taha Shokri. ${RESET}"
+
 EOF
+    # --- End of Heredoc ---
 
-    echo "🧰 Setting permissions..."
-    chmod +x "$path"
-    chmod -x /etc/update-motd.d/*
+    printf "🧰 Setting correct permissions...\n"
+    # *** FIX: Corrected permission logic. ***
+    # First, disable all other motd scripts. The wildcard might give an error if the directory is empty, so we suppress it.
+    chmod -x /etc/update-motd.d/* >/dev/null 2>&1
+    # Then, make our new script executable.
     chmod +x "$path"
 
-    printf "${Green} 🎉 MOTD is changed ${NC} \n"
+    printf "${Green}🎉 MOTD successfully changed!${NC}\n"
+
     sleep 5
-    main;
+    main
 }
 
 
