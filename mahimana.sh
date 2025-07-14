@@ -217,7 +217,7 @@ Port 22
 PermitRootLogin yes
 #StrictModes yes
 MaxAuthTries 3
-MaxSessions 1
+MaxSessions 10
 
 PubkeyAuthentication yes
 
